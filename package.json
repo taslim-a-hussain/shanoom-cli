@@ -1,0 +1,32 @@
+{
+  "name": "shanoom-cli",
+  "version": "1.0.2",
+  "description": "Shanoom CLI",
+  "type": "module",
+  "exports": {
+    ".": "./bin/shanoom.js"
+  },
+  "bin": {
+    "shanoom": "./bin/shanoom.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/taslim-a-hussain/shanoom-cli.git"
+  },
+  "author": "taz-sen",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/taslim-a-hussain/shanoom-cli/issues"
+  },
+  "homepage": "https://github.com/taslim-a-hussain/shanoom-cli#readme",
+  "dependencies": {
+    "chalk": "^5.2.0",
+    "commander": "^10.0.0",
+    "inquirer": "^9.1.5",
+    "ora": "^6.3.0",
+    "read-pkg": "^8.0.0"
+  }
+}
