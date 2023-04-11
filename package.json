@@ -1,7 +1,7 @@
 {
-  "name": "shanoom-cli",
+  "name": "shanoom",
   "version": "1.0.2",
-  "description": "Shanoom CLI",
+  "description": "Developers tool to work with and manage contents",
   "type": "module",
   "exports": {
     ".": "./bin/shanoom.js"
