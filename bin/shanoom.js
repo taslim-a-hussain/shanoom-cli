@@ -1,11 +1,17 @@
 #!/usr/bin/env node
 
+import { fileURLToPath } from 'url';
+import path from 'path';
 import { program } from 'commander';
-import { readPackage } from 'read-pkg';
-
 import {login} from './actions.js';
+import {readPackage} from 'read-pkg';
 
-const { name, description, version } = await readPackage();
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const packageJsonPath = path.resolve(__dirname, '../');
+
+
+const {name, description, version} = await readPackage({cwd: packageJsonPath});
+
 
 program
   .name(name)
