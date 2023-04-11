@@ -1,13 +1,19 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
+import fs from 'fs';
+import path from 'path';
+import os from 'os';
+import {loginCall} from './apicall.js';
+
+
 
 export const login = () => {
     inquirer
       .prompt([
         {
           type: 'input',
-          name: 'username',
-          message: 'Username:',
+          name: 'email',
+          message: 'Email:',
           validate: (input) => input.length > 0,
         },
         {
@@ -18,8 +24,21 @@ export const login = () => {
           validate: (input) => input.length > 0,
         },
       ])
-      .then((answers) => {
-        console.log(chalk.green(`Logged in as ${answers.username}`));
+      .then(async (answers) => {
+
+        const homedir = os.homedir();
+        const shanoomrcPath = path.join(homedir, '.shanoomrc');
+        
+        const response = await loginCall(answers);
+
+        const config = {
+            token: response.token
+        };
+
+        // Write the config to the .shanoomrc file
+        fs.writeFileSync(shanoomrcPath, JSON.stringify(config));
+        
+        console.log(chalk.green(`Logged in as ${response.name}`));
       })
       .catch((error) => {
         console.error(chalk.red(`Error: ${error.message}`));
