@@ -5,7 +5,7 @@ import path from 'path';
 import { program } from 'commander';
 import {login, logout} from './actions.js';
 import {readPackage} from 'read-pkg';
-import {checkTokenFile, auth} from './lib/index.js';
+import {checkTokenFile, auth, notAuth} from './lib/index.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const packageJsonPath = path.resolve(__dirname, '../');
@@ -25,7 +25,7 @@ program
 program
   .command('login')
   .description('Log in with your username and password')
-  .action(login);
+  .action(() => notAuth(login));
 
 
 

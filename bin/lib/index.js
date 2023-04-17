@@ -36,7 +36,7 @@ export const checkTokenFile = () => {
 };
 
 
-// Create a middleware function to check if the user is logged in
+// Create a middleware function to check if the user is logged in, for authenticated operations
 export const auth = async (next) => {
     const token = await getToken();
     if (!token) {
@@ -47,8 +47,8 @@ export const auth = async (next) => {
 };
 
 
-// Middleware to check if the user is already logged in
-export const alreadyLoggedIn = async (next) => {
+// Middleware to check if the user is already logged in, for unauthenticated operations
+export const notAuth = async (next) => {
     const token = await getToken();
     if (token) {
         console.log('You are already logged in');

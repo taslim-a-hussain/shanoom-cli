@@ -7,7 +7,7 @@ import {loginCall, logoutCall} from './apicall.js';
 import {deleteToken} from './lib/index.js';
 
 
-
+// Login Action
 export const login = () => {
 
     inquirer
@@ -48,7 +48,7 @@ export const login = () => {
 };
 
 
-
+// Logout Action
 export const logout = async (token) => {
   try {
     const response = await logoutCall(token);
