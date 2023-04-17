@@ -3,11 +3,13 @@ import chalk from 'chalk';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import {loginCall} from './apicall.js';
+import {loginCall, logoutCall} from './apicall.js';
+import {deleteToken} from './lib/index.js';
 
 
 
 export const login = () => {
+
     inquirer
       .prompt([
         {
@@ -43,4 +45,17 @@ export const login = () => {
       .catch((error) => {
         console.error(chalk.red(`Error: ${error.message}`));
       });
+};
+
+
+
+export const logout = async (token) => {
+  try {
+    const response = await logoutCall(token);
+    deleteToken();
+    console.log(chalk.green(response.message));
+  } catch (error) {
+    console.error(chalk.red(`Error: ${error.message}`));
+    console.log(error);
+  }
 };

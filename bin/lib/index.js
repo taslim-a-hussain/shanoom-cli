@@ -28,9 +28,31 @@ export const deleteToken = () => {
 };
 
 
-// If the .shanoomrc file doesn't exist, create it
+// If the .shanoomrc file doesn't exist, create it with an empty token
 export const checkTokenFile = () => {
     if (!fsync.existsSync(shanoomrcPath)) {
         fsync.writeFileSync(shanoomrcPath, JSON.stringify({token: ''}));
     }
+};
+
+
+// Create a middleware function to check if the user is logged in
+export const auth = async (next) => {
+    const token = await getToken();
+    if (!token) {
+        console.log('You are not logged in');
+        process.exit(1);
+    }
+    next(token);
+};
+
+
+// Middleware to check if the user is already logged in
+export const alreadyLoggedIn = async (next) => {
+    const token = await getToken();
+    if (token) {
+        console.log('You are already logged in');
+        process.exit(1);
+    }
+    next();
 };

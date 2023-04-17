@@ -2,6 +2,8 @@ import axios from "axios";
 
 const url = "http://localhost:3000/user/";
 
+
+// Login
 export const loginCall = async (pass) => {
     try {
         const response = await axios.post(`${url}login`, pass);
@@ -12,6 +14,7 @@ export const loginCall = async (pass) => {
 };
 
 
+// Logout
 export const logoutCall = async (token) => {
     try {
       const response = await axios.post(
@@ -23,5 +26,5 @@ export const logoutCall = async (token) => {
     } catch (error) {
       throw new Error(error.message);
     }
-  };
+};
   
