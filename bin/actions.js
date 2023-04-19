@@ -53,7 +53,7 @@ export const login = () => {
 export const whoami = async (token) => {
   try {
     const response = await getUserCall(token);
-    console.log(' Logged in as: '+chalk.bgBlueBright.whiteBright(` ${response.user.name} (${response.user.email}) `));
+    console.log('Logged in as: '+chalk.bgBlueBright.whiteBright(` ${response.user.name} (${response.user.email}) `));
   } catch (error) {
     console.error(chalk.red(`Error: ${error.message}`));
   }
@@ -85,7 +85,6 @@ export const profile = async (token) => {
         }
         console.log(output);
     }
-    
   } catch (error) {
     console.error(chalk.red(`Error: ${error.message}`));
   }

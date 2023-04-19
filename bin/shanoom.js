@@ -7,6 +7,7 @@ import {login, whoami, profile, logout} from './actions.js';
 import {readPackage} from 'read-pkg';
 import {checkTokenFile, auth, notAuth} from './lib/index.js';
 
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const packageJsonPath = path.resolve(__dirname, '../');
 
@@ -41,7 +42,9 @@ program
 program
   .command('profile')
   .description('View your profile')
-  .action(() => auth(profile));
+  .action(async () => {
+    await auth(profile);
+  });
 
 
 // Logout command
