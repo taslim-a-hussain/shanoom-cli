@@ -14,6 +14,19 @@ export const loginCall = async (pass) => {
 };
 
 
+// Get user (info)
+export const getUserCall = async (token) => {
+    try {
+        const response = await axios.get(`${url}`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        return response.data;
+    } catch (error) {
+        throw new Error(error.message);
+    }
+};
+
+
 // Logout
 export const logoutCall = async (token) => {
     try {

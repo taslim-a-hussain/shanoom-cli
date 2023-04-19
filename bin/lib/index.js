@@ -56,3 +56,25 @@ export const notAuth = async (next) => {
     }
     next();
 };
+
+
+// Remove props from an object
+export const removeProps = (obj, keys=[]) => {
+    if (keys) {
+        // remove the keys from the object
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            delete obj[key];
+        }
+    }
+
+    return obj;
+};
+
+
+// ISO Date Parser
+export const isoDateParse = (isoDate) => {
+    const date = new Date(isoDate);
+    const humanReadableDate = date.toLocaleString();
+    return humanReadableDate;
+};

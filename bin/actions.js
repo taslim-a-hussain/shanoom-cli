@@ -3,8 +3,9 @@ import chalk from 'chalk';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import {loginCall, logoutCall} from './apicall.js';
-import {deleteToken} from './lib/index.js';
+import {fcap} from 'gokit';
+import {loginCall, getUserCall, logoutCall} from './apicall.js';
+import {deleteToken, removeProps, isoDateParse} from './lib/index.js';
 
 
 // Login Action
@@ -48,6 +49,49 @@ export const login = () => {
 };
 
 
+// Whoami Action
+export const whoami = async (token) => {
+  try {
+    const response = await getUserCall(token);
+    console.log(' Logged in as: '+chalk.bgBlueBright.whiteBright(` ${response.user.name} (${response.user.email}) `));
+  } catch (error) {
+    console.error(chalk.red(`Error: ${error.message}`));
+  }
+};
+
+
+// Profile Action
+export const profile = async (token) => {
+  try {
+    const response = await getUserCall(token);
+
+    const user = removeProps(response.user, ['_id', '__v']);
+
+    const keys = Object.keys(user);
+
+    for (const key of keys) {
+        const value = user[key];
+        let output;
+        switch (key) {
+            case 'name':
+                output = `${key}: ${fcap(value)}`;
+                break;
+            case 'createdAt':
+            case 'updatedAt':
+                output = `${key}: ${isoDateParse(value)}`;
+                break;
+            default:
+                output = `${key}: ${value}`;
+        }
+        console.log(output);
+    }
+    
+  } catch (error) {
+    console.error(chalk.red(`Error: ${error.message}`));
+  }
+};
+
+
 // Logout Action
 export const logout = async (token) => {
   try {
@@ -56,6 +100,5 @@ export const logout = async (token) => {
     console.log(chalk.green(response.message));
   } catch (error) {
     console.error(chalk.red(`Error: ${error.message}`));
-    console.log(error);
   }
 };

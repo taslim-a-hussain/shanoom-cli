@@ -3,7 +3,7 @@
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { program } from 'commander';
-import {login, logout} from './actions.js';
+import {login, whoami, profile, logout} from './actions.js';
 import {readPackage} from 'read-pkg';
 import {checkTokenFile, auth, notAuth} from './lib/index.js';
 
@@ -16,23 +16,40 @@ const pkg = await readPackage({cwd: packageJsonPath});
 checkTokenFile();
 
 
+// Package info and commands (shanoom)
 program
   .name(pkg.name)
   .description(pkg.description)
   .version(pkg.version, '-v, --version, -V', 'output the current version');
 
 
+// Login command
 program
   .command('login')
   .description('Log in with your username and password')
   .action(() => notAuth(login));
 
 
+// Whoami command
+program
+  .command('whoami')
+  .description('Check who you are logged in as')
+  .action(() => auth(whoami));
 
+
+// Profile command
+program
+  .command('profile')
+  .description('View your profile')
+  .action(() => auth(profile));
+
+
+// Logout command
 program
   .command('logout')
   .description('Log out of your account')
   .action(() => auth(logout));
 
 
+// Parse the arguments
 program.parse(process.argv);
