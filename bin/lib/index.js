@@ -1,6 +1,10 @@
 import fs from 'fs/promises';
 import fsync from 'fs';
 import path from 'path';
+import {glob} from 'glob';
+import ora from 'ora';
+import { time } from 'console';
+
 
 const shanoomrcPath = path.join(process.env.HOME, '.shanoomrc');
 
@@ -77,4 +81,78 @@ export const isoDateParse = (isoDate) => {
     const date = new Date(isoDate);
     const humanReadableDate = date.toLocaleString();
     return humanReadableDate;
+};
+
+
+/**
+ * Search for files matching a pattern and return an array of objects with the file name as key and the file path as value
+ * @returns {Promise<Array>} Of object with file name as key and file path as value
+ */
+const getFiles = async () => {
+
+    const pattern = '**/*.data.{js,mjs}'; // Pattern to match files
+
+    const fileNameRegex = /([^/]+)\.data\.(js|mjs)$/; // Regex to extract the file name from the file path
+    
+    const rawFiles = await glob(pattern, { ignore: 'node_modules/**' }); // Get all files matching the pattern
+
+    // Create an array of objects with the file name as key and the file path as value
+    const filesObj = rawFiles.map(file => { 
+        const fileName = file.match(fileNameRegex)[1];
+        return { [fileName]: file };
+    });
+
+    return filesObj;
+};
+
+
+/** 
+* From an array of objects with the file name as key and the file path as value, * return an object with the file name as key and the file content as value
+* @param {Array} filesObj Array of objects with the file name as key and the file * * * path as value
+* @returns {Promise<Object>} Object with the file name as key and the file content as * value
+*/
+export const filesContent = async () => {
+    const files = await getFiles();
+
+    const data = [];
+
+    // Loop through the array of objects and read file names and paths
+    for (const file of files) {
+        const fileName = Object.keys(file)[0];
+        const filePath = Object.values(file)[0];
+
+        // Read the file content
+        const fileContent = await fs.readFile(path.resolve(filePath), 'utf8');
+
+        const regex = /{([^}]+)}/gm; // Match everything between curly brackets
+        const matches = regex.exec(fileContent); // Execute the regex on the file content
+
+        if (matches && matches.length > 1) { // If there is a match
+            const textBetweenCurlyBrackets = matches[0]; // Get the first match
+            const sanitizedText = textBetweenCurlyBrackets.replace(/'/g, '"'); // Replace single quotes with double quotes (JSON5 requires double quotes)
+            const json5Data = (new Function(`return ${sanitizedText}`))(); // Evaluate the string as JavaScript code (using function constructor instead of eval to avoid security issues)
+
+            const name = json5Data.name ? json5Data.name : fileName;
+            
+            data.push({name, data: json5Data});
+        }        
+    }
+
+    return data;
+};
+
+
+
+// Spinner function
+export const spinner = (action, options = {}) => {
+    const startMessage = options.startMessage || 'Loading...';
+    const endMessage = options.endMessage || 'Done!';
+    const timeout = options.timeout || 100;
+
+    const spinner = ora(startMessage).start();
+
+    setTimeout(() => {
+        action();
+        spinner.succeed(endMessage);
+    }, timeout);
 };

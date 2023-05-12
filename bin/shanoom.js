@@ -3,9 +3,9 @@
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { program } from 'commander';
-import {login, whoami, profile, logout} from './actions.js';
+import {raw, login, whoami, profile, logout} from './actions.js';
 import {readPackage} from 'read-pkg';
-import {checkTokenFile, auth, notAuth} from './lib/index.js';
+import {checkTokenFile, auth, notAuth, spinner} from './lib/index.js';
 
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -17,6 +17,8 @@ const pkg = await readPackage({cwd: packageJsonPath});
 checkTokenFile();
 
 
+
+
 // Package info and commands (shanoom)
 program
   .name(pkg.name)
@@ -24,12 +26,21 @@ program
   .version(pkg.version, '-v, --version, -V', 'output the current version');
 
 
+// Raw data command (shanoom raw) to view the raw data of the current directory
+program
+  .command('raw')
+  .description('View the raw data of the current directory')
+  .action(() => {
+    spinner(raw);
+  });
+
+  
+
 // Login command
 program
   .command('login')
   .description('Log in with your username and password')
   .action(() => notAuth(login));
-
 
 // Whoami command
 program

@@ -5,7 +5,7 @@ import path from 'path';
 import os from 'os';
 import {fcap} from 'gokit';
 import {loginCall, getUserCall, logoutCall} from './apicall.js';
-import {deleteToken, removeProps, isoDateParse} from './lib/index.js';
+import {deleteToken, removeProps, isoDateParse, filesContent} from './lib/index.js';
 
 
 // Login Action
@@ -46,6 +46,28 @@ export const login = () => {
       .catch((error) => {
         console.error(chalk.red(`Error: ${error.message}`));
       });
+};
+
+
+// Raw Action
+export const raw = async () => {
+  try {
+    const data = await filesContent();
+
+    // Print out the total number of files
+    console.log(chalk.green(`Total: ${data.length} files \n`));
+
+    // Loop through the data and print it
+    for (const item of data) {
+        console.log(JSON.stringify(item, null, 4) + '\n');
+        
+        // Print a full horizental separator
+        console.log(chalk.green('='.repeat(80)) + '\n');
+    }
+    
+  } catch (error) {
+    console.error(chalk.red(`Error: ${error.message}`));
+  }
 };
 
 
