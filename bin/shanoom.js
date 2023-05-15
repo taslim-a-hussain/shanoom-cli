@@ -3,7 +3,7 @@
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { program } from 'commander';
-import {raw, login, whoami, profile, logout} from './actions.js';
+import {raw, login, whoami, profile, createDomain, logout} from './actions.js';
 import {readPackage} from 'read-pkg';
 import {checkTokenFile, auth, notAuth, spinner} from './lib/index.js';
 
@@ -34,35 +34,51 @@ program
     spinner(raw);
   });
 
-  
 
 // Login command
 program
   .command('login')
   .description('Log in with your username and password')
-  .action(() => notAuth(login));
+  .action(() => spinner(async () => {
+    await notAuth(login);
+  }));
 
 // Whoami command
 program
   .command('whoami')
   .description('Check who you are logged in as')
-  .action(() => auth(whoami));
+  .action(() => {
+     spinner(async () => {
+      await auth(whoami);
+     });
+  });
 
 
 // Profile command
 program
   .command('profile')
   .description('View your profile')
-  .action(async () => {
+  .action(() => spinner(async () => {
     await auth(profile);
-  });
+  }));
+
+
+// Create Domain command (shanoom create domain)
+program
+  .command('create domain')
+  .description('Create a domain')
+  .action(() => spinner(async () => {
+    await auth(createDomain);
+  }));
 
 
 // Logout command
 program
   .command('logout')
   .description('Log out of your account')
-  .action(() => auth(logout));
+  .action(() => spinner(async () => {
+    await auth(logout);
+  }));
 
 
 // Parse the arguments

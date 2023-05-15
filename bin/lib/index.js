@@ -3,7 +3,6 @@ import fsync from 'fs';
 import path from 'path';
 import {glob} from 'glob';
 import ora from 'ora';
-import { time } from 'console';
 
 
 const shanoomrcPath = path.join(process.env.HOME, '.shanoomrc');
@@ -145,9 +144,9 @@ export const filesContent = async () => {
 
 // Spinner function
 export const spinner = (action, options = {}) => {
-    const startMessage = options.startMessage || 'Loading...';
-    const endMessage = options.endMessage || 'Done!';
-    const timeout = options.timeout || 100;
+    const startMessage = options.startMessage || 'Wait a moment...';
+    const endMessage = options.endMessage || `👍`;
+    const timeout = options.timeout || 8;
 
     const spinner = ora(startMessage).start();
 
