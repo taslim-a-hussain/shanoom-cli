@@ -3,7 +3,7 @@ import chalk from 'chalk';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import {fcap} from 'gokit';
+import {fcap, ftrim} from 'gokit';
 import {loginCall, getUserCall, logoutCall, createDomainCall} from './apicall.js';
 import {deleteToken, removeProps, isoDateParse, filesContent} from './lib/index.js';
 
@@ -71,16 +71,29 @@ export const createDomain = async (token) => {
       },
     ]);
 
+    const data = {
+      ...answers,
+      name: ftrim(answers.name).replace(/\s+/g, '-').toLowerCase()
+    };
+    
+    await createDomainCall(token, data);
 
-    await createDomainCall(token, answers);
+    console.log(chalk.green(`Domain ${data.name} created successfully`));
 
-    console.log(chalk.green(`Domain ${answers.name} created successfully`));
   } catch (error) {
-
     console.error(chalk.red(`Error: ${error.message}`));
   }
 };
-  
+
+
+// Create Content Action
+export const createContent = async (token) => {
+  try {
+    console.log(chalk.green('Create Content'));
+  } catch (error) {
+    console.error(chalk.red(`Error: ${error.message}`));
+  }
+};
 
 
 // Raw Action

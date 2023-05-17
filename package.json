@@ -1,6 +1,6 @@
 {
   "name": "shanoom",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Developers tool to work with and manage contents",
   "type": "module",
   "exports": {

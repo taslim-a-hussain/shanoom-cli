@@ -3,7 +3,7 @@
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { program } from 'commander';
-import {raw, login, whoami, profile, createDomain, logout} from './actions.js';
+import {raw, login, whoami, profile, createDomain, logout, createContent} from './actions.js';
 import {readPackage} from 'read-pkg';
 import {checkTokenFile, auth, notAuth, spinner} from './lib/index.js';
 
@@ -63,13 +63,26 @@ program
   }));
 
 
-// Create Domain command (shanoom create domain)
+
 program
-  .command('create domain')
-  .description('Create a domain')
-  .action(() => spinner(async () => {
-    await auth(createDomain);
-  }));
+  .command('create')
+  .description('Create a domain or content for a domain')
+  .option('-d, --domain', 'Create a domain')
+  .option('-c, --content', 'Create content for a domain')
+  .action((options) => {
+    if (options.domain) {
+      spinner(async () => {
+        await auth(createDomain);
+      });
+    } else if (options.content) {
+      spinner(async () => {
+        await auth(createContent);
+      });
+    } else {
+      // Run: shanoom create -h programmaticaly
+      program.parse(['node', 'shanoom.js', 'create', '-h']);
+    }
+});
 
 
 // Logout command

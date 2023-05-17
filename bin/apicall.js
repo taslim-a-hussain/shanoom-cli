@@ -28,21 +28,18 @@ export const getUserCall = async (token) => {
 
 
 // Create a domain
-export const createDomainCall = async (token, domain) => {
-
+export const createDomainCall = async (token, data) => {
     try {
         const response = await axios.post(
             `${url}domain`,
-            domain,
+            data,
             {
                 headers: { Authorization: `Bearer ${token}` }
             }
         );
-        
         return response.data;
     } catch (error) {
-
-        throw new Error(error.message);
+        throw new Error(error.response.data.message || error.message);
     }
 };
 
