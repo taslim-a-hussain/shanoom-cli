@@ -44,6 +44,19 @@ export const createDomainCall = async (token, data) => {
 };
 
 
+// Get all domains
+export const getDomainsCall = async (token) => {
+    try {
+        const response = await axios.get(`${url}domain/list`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        return response.data;
+    } catch (error) {
+        throw new Error(error.message);
+    }
+};
+
+
 // Logout
 export const logoutCall = async (token) => {
     try {

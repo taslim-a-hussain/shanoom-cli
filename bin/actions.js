@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import {fcap, ftrim} from 'gokit';
-import {loginCall, getUserCall, logoutCall, createDomainCall} from './apicall.js';
+import {loginCall, getUserCall, logoutCall, createDomainCall, getDomainsCall} from './apicall.js';
 import {deleteToken, removeProps, isoDateParse, filesContent} from './lib/index.js';
 
 
@@ -86,6 +86,34 @@ export const createDomain = async (token) => {
 };
 
 
+// List Domains Action
+export const listDomains = async (token) => {
+  try {
+    const response = await getDomainsCall(token);
+
+    // Print out the total number of domains
+    console.log(chalk.green(` Total: ${response.length} domains \n`));
+
+    // Loop through the data and print it if createdAt and updatedAt format it (output = `${key}: ${isoDateParse(value)}`;)
+    for (const domain of response) {
+      const {name, description, createdAt, updatedAt} = domain;
+
+
+      console.log(chalk.bgWhite.blueBright(' Domain:  ') + chalk.bgBlueBright.whiteBright(` ${name} `));
+      description ? console.log(description + '\n') : console.log('No description\n');
+      console.log('Created At: ' + isoDateParse(createdAt));
+      console.log('Updated At: ' + isoDateParse(updatedAt));
+
+      console.log(chalk.green('='.repeat(80)) + '\n');
+    }
+
+  } catch (error) {
+    console.error(chalk.red(`Error: ${error.message}`));
+  }
+};
+
+
+
 // Create Content Action
 export const createContent = async (token) => {
   try {
@@ -108,9 +136,9 @@ export const raw = async () => {
     console.log(chalk.bgWhite.blueBright(' Directory: ') + chalk.bgBlueBright.whiteBright(` ${cwdName} `));
 
     // Print out the total number of files
-    console.log(chalk.green(` Total: ${data.length} files \n`));
+    console.log(chalk.green(` Total: ${data.length} domain(s) \n`));
 
-    // Loop through the data and print it
+    // Loop through the data and print it if createdAt and updatedAt format it (output = `${key}: ${isoDateParse(value)}`;)
     for (const item of data) {
         console.log(JSON.stringify(item, null, 4) + '\n');
         

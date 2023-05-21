@@ -3,7 +3,7 @@
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { program } from 'commander';
-import {raw, login, whoami, profile, createDomain, logout, createContent} from './actions.js';
+import {raw, login, whoami, profile, createDomain, listDomains, logout, createContent} from './actions.js';
 import {readPackage} from 'read-pkg';
 import {checkTokenFile, auth, notAuth, spinner} from './lib/index.js';
 
@@ -63,13 +63,26 @@ program
   }));
 
 
-
+// Create command
 program
   .command('create')
   .description('Create a domain or content for a domain')
+  .allowUnknownOption()
   .option('-d, --domain', 'Create a domain')
   .option('-c, --content', 'Create content for a domain')
   .action((options) => {
+
+    const knownOptions = ['-d', '--domain', '-c', '--content'];
+
+    const unknownOptions = process.argv.slice(3).filter((arg) => !knownOptions.includes(arg));
+
+    if (unknownOptions.length > 0) {
+      console.error(`Unknown option: ${unknownOptions[0]}`);
+      // Run: shanoom create -h programmaticaly
+      program.parse(['node', 'shanoom.js', 'create', '-h']);
+    }
+    
+    
     if (options.domain) {
       spinner(async () => {
         await auth(createDomain);
@@ -82,7 +95,31 @@ program
       // Run: shanoom create -h programmaticaly
       program.parse(['node', 'shanoom.js', 'create', '-h']);
     }
+
 });
+
+
+// Get Domain command (shanoom getDomain) by domain name if no domain name is provided, get all domains or if -a is provided, get all domains
+program
+  .command('getDomain')
+  .description('Get a domain by domain name or get all domains')
+  .option('-a, --all', 'Get all domains')
+  .option('-n, --name <name>', 'Get a domain by domain name')
+  .action((options) => {
+    if (options.all) {
+      spinner(async () => {
+        await auth(listDomains);
+      });
+    } else if (options.name) {
+      spinner(async () => {
+        console.log(`Getting domain with name: ${options.name}`);
+      });
+    } else {
+      // Run: shanoom getDomain -h programmaticaly
+      program.parse(['node', 'shanoom.js', 'getDomain', '-h']);
+    }
+  });
+
 
 
 // Logout command
