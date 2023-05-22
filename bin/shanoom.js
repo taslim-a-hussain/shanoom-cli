@@ -3,7 +3,9 @@
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { program } from 'commander';
-import {raw, login, whoami, profile, createDomain, listDomains, getDomain, logout, createContent} from './actions.js';
+import { login, whoami, profile, logout } from './action/user.js';
+import { createDomain, listDomains, getDomain } from './action/domain.js';
+import { createContent, raw } from './action/content.js';
 import {readPackage} from 'read-pkg';
 import {checkTokenFile, auth, notAuth, spinner} from './lib/index.js';
 
