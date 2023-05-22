@@ -3,7 +3,7 @@
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { program } from 'commander';
-import {raw, login, whoami, profile, createDomain, listDomains, logout, createContent} from './actions.js';
+import {raw, login, whoami, profile, createDomain, listDomains, getDomain, logout, createContent} from './actions.js';
 import {readPackage} from 'read-pkg';
 import {checkTokenFile, auth, notAuth, spinner} from './lib/index.js';
 
@@ -63,40 +63,23 @@ program
   }));
 
 
-// Create command
+// Create Domain command (shanoom createDomain)
 program
-  .command('create')
-  .description('Create a domain or content for a domain')
-  .allowUnknownOption()
-  .option('-d, --domain', 'Create a domain')
-  .option('-c, --content', 'Create content for a domain')
-  .action((options) => {
+  .command('createDomain')
+  .description('Create a domain')
+  .action(() => spinner(async () => {
+    await auth(createDomain);
+  }));
 
-    const knownOptions = ['-d', '--domain', '-c', '--content'];
 
-    const unknownOptions = process.argv.slice(3).filter((arg) => !knownOptions.includes(arg));
-
-    if (unknownOptions.length > 0) {
-      console.error(`Unknown option: ${unknownOptions[0]}`);
-      // Run: shanoom create -h programmaticaly
-      program.parse(['node', 'shanoom.js', 'create', '-h']);
-    }
-    
-    
-    if (options.domain) {
-      spinner(async () => {
-        await auth(createDomain);
-      });
-    } else if (options.content) {
-      spinner(async () => {
-        await auth(createContent);
-      });
-    } else {
-      // Run: shanoom create -h programmaticaly
-      program.parse(['node', 'shanoom.js', 'create', '-h']);
-    }
-
-});
+// Create Content command (shanoom createContent)
+program
+  .command('createContent')
+  .description('Create content')
+  .action(() => spinner(async () => {
+    await auth(createContent);
+  }));
+  
 
 
 // Get Domain command (shanoom getDomain) by domain name if no domain name is provided, get all domains or if -a is provided, get all domains
@@ -112,7 +95,7 @@ program
       });
     } else if (options.name) {
       spinner(async () => {
-        console.log(`Getting domain with name: ${options.name}`);
+        await auth(getDomain, options.name);
       });
     } else {
       // Run: shanoom getDomain -h programmaticaly

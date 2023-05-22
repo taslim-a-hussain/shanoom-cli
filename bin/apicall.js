@@ -44,6 +44,23 @@ export const createDomainCall = async (token, data) => {
 };
 
 
+// Create content for a domain
+export const createContentCall = async (token, domainName, data) => {
+    try {
+        const response = await axios.post(
+            `${url}content/${domainName}`,
+            data,
+            {
+                headers: { Authorization: `Bearer ${token}` }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        throw new Error(error.response.data.message || error.message);
+    }
+};
+
+
 // Get all domains
 export const getDomainsCall = async (token) => {
     try {
@@ -52,7 +69,21 @@ export const getDomainsCall = async (token) => {
         });
         return response.data;
     } catch (error) {
-        throw new Error(error.message);
+        throw new Error(error.response.data.message || error.message);
+    }
+};
+
+
+// Get domain by name
+export const getDomainCall = async (token, domainName) => {
+    try {
+        const response = await axios.get(`${url}domain/${domainName}`, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        
+        return response.data;
+    } catch (error) {
+        throw new Error(error.response.data.message || error.message);
     }
 };
 

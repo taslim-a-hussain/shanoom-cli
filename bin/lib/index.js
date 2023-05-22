@@ -40,13 +40,14 @@ export const checkTokenFile = () => {
 
 
 // Create a middleware function to check if the user is logged in, for authenticated operations
-export const auth = async (next) => {
+export const auth = async (next, ...params) => {
     const token = await getToken();
     if (!token) {
         console.log('You are not logged in');
         process.exit(1);
     }
-    next(token);
+
+    next(token, ...params);
 };
 
 
@@ -131,9 +132,8 @@ export const filesContent = async () => {
             const sanitizedText = textBetweenCurlyBrackets.replace(/'/g, '"'); // Replace single quotes with double quotes (JSON5 requires double quotes)
             const json5Data = (new Function(`return ${sanitizedText}`))(); // Evaluate the string as JavaScript code (using function constructor instead of eval to avoid security issues)
 
-            const name = json5Data.name ? json5Data.name : fileName;
             
-            data.push({name, data: json5Data});
+            data.push({name: fileName, data: json5Data});
         }        
     }
 
@@ -154,4 +154,12 @@ export const spinner = (action, options = {}) => {
         action();
         spinner.succeed(endMessage);
     }, timeout);
+};
+
+
+// Get the current working directory name
+export const getCwdName = () => {
+    const cwd = process.cwd();
+    const cwdName = cwd.split(path.sep).pop();
+    return cwdName;
 };
