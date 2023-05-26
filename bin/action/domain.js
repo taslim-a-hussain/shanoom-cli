@@ -2,7 +2,7 @@ import inquirer from 'inquirer';
 import chalk from 'chalk';
 import { ftrim } from 'gokit';
 import { isoDateParse } from '../lib/index.js';
-import { createDomainCall, getDomainsCall, getDomainCall } from '../apicall/domain.js';
+import { createDomainCall, getDomainsCall, getDomainCall, deleteDomainCall, deleteDomainsCall } from '../apicall/domain.js';
 
 
 // Valid constants
@@ -32,13 +32,12 @@ export const createDomain = async (token) => {
     ]);
 
     const data = {
-      ...answers,
-      name: ftrim(answers.name).replace(/\s+/g, '-').toLowerCase()
+      ...answers
     };
     
     await createDomainCall(token, data);
 
-    console.log(chalk.green(`Domain ${data.name} created successfully`));
+    console.log(chalk.green(`Domain ${ftrim(data.name).replace(/\s+/g, '-').toLowerCase()} created successfully`));
 
   } catch (error) {
     console.error(chalk.red(`Error: ${error.message}`));
@@ -93,6 +92,76 @@ export const getDomain = async (token, domainName) => {
 
   } catch (error) {
 
+    console.error(chalk.red(`${error.message}`));
+  }
+};
+
+
+// Delete Domain by name Action
+export const deleteDomain = async (token, domainName) => {
+  try {
+    const response = await getDomainCall(token, domainName);
+
+    if (!response) {
+      console.log(chalk.red(`Domain ${domainName} not found`));
+      return;
+    }
+
+    const {name} = response;
+
+    const answers = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'confirm',
+        message: `Are you sure you want to delete domain ${name}?`,
+        default: false,
+      },
+    ]);
+
+    if (answers.confirm) {
+      // Delete domain
+      await deleteDomainCall(token, name);
+
+      console.log(chalk.green(`Domain ${name} deleted successfully`));
+    } else {
+      console.log(chalk.red(`Domain ${name} not deleted`));
+    }
+
+  } catch (error) {
+    console.error(chalk.red(`${error.message}`));
+  }
+};
+
+
+// Delete all Domains Action
+export const deleteDomains = async (token) => {
+  try {
+    const response = await getDomainsCall(token);
+
+    if (response.length === 0) {
+      console.log(chalk.red(`No domains found`));
+      return;
+    }
+
+    const answers = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'confirm',
+        message: `Are you sure you want to delete all domains?`,
+        default: false,
+      },
+    ]);
+
+    if (answers.confirm) {
+      // Delete all domains
+      await deleteDomainsCall(token);
+
+      console.log(chalk.green(`All domains deleted successfully`));
+    } else {
+      console.log(chalk.red(`All domains not deleted`));
+    }
+
+  } catch (error) {
     console.error(chalk.red(`${error.message}`));
   }
 };

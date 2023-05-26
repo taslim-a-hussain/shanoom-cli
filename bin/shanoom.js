@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import { program } from 'commander';
 import { login, whoami, profile, logout } from './action/user.js';
-import { createDomain, listDomains, getDomain } from './action/domain.js';
+import { createDomain, listDomains, getDomain, deleteDomain, deleteDomains } from './action/domain.js';
 import { createContent, raw } from './action/content.js';
 import {readPackage} from 'read-pkg';
 import {checkTokenFile, auth, notAuth, spinner} from './lib/index.js';
@@ -104,6 +104,24 @@ program
       program.parse(['node', 'shanoom.js', 'getDomain', '-h']);
     }
   });
+
+
+// Delete Domain by name command (shanoom deleteDomain <domainName>)
+program
+  .command('deleteDomain <domainName>')
+  .description('Delete a domain by domain name')  
+  .action((domainName) => spinner(async () => {
+    await auth(deleteDomain, domainName); 
+  }));
+
+
+// Delete All Domains command (shanoom deleteDomains)
+program
+  .command('deleteDomains')
+  .description('Delete all domains')
+  .action(() => spinner(async () => {
+    await auth(deleteDomains);
+  }));
 
 
 
