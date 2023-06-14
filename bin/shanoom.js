@@ -4,8 +4,8 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import { program } from 'commander';
 import { login, whoami, profile, logout } from './action/user.js';
-import { createDomain, listDomains, getDomain, deleteDomain, deleteDomains } from './action/domain.js';
-import { createContent, raw } from './action/content.js';
+import { listDomains, getDomain, deleteDomain, deleteDomains } from './action/domain.js';
+import { raw, contentManager } from './action/content.js';
 import {readPackage} from 'read-pkg';
 import {checkTokenFile, auth, notAuth, spinner} from './lib/index.js';
 
@@ -30,8 +30,8 @@ program
 
 // Raw data command (shanoom raw) to view the raw data of the current directory
 program
-  .command('raw')
-  .description('View the raw data of the current directory')
+  .command('raw-contents')
+  .description('View the contents (from <filename>.data.shanoom.js) of the current directory')
   .action(() => {
     spinner(raw);
   });
@@ -44,6 +44,7 @@ program
   .action(() => spinner(async () => {
     await notAuth(login);
   }));
+
 
 // Whoami command
 program
@@ -65,21 +66,12 @@ program
   }));
 
 
-// Create Domain command (shanoom createDomain)
+// Content Manager command (shanoom contentManager)
 program
-  .command('createDomain')
-  .description('Create a domain')
+  .command('contentManager')
+  .description('Will update, delete, and create content into your account')
   .action(() => spinner(async () => {
-    await auth(createDomain);
-  }));
-
-
-// Create Content command (shanoom createContent)
-program
-  .command('createContent')
-  .description('Create content')
-  .action(() => spinner(async () => {
-    await auth(createContent);
+    await auth(contentManager);
   }));
   
 
@@ -132,7 +124,6 @@ program
   .action(() => spinner(async () => {
     await auth(logout);
   }));
-
 
 // Parse the arguments
 program.parse(process.argv);

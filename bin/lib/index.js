@@ -3,7 +3,9 @@ import fsync from 'fs';
 import path from 'path';
 import {glob} from 'glob';
 import ora from 'ora';
-
+import { createRequire } from 'module';
+import JSON5 from 'json5';
+import {hashContent} from './content-hash.js';
 
 const shanoomrcPath = path.join(process.env.HOME, '.shanoomrc');
 
@@ -141,6 +143,78 @@ export const filesContent = async () => {
 };
 
 
+/* 
+  `readFile`:
+   - Uses `createRequire` and `import` statements to dynamically load the file content.
+   - It checks whether the file uses CommonJS or ES modules syntax by checking for the presence of `module.exports`.
+   - If it uses CommonJS syntax, it uses `require` to load the file. If it uses ES modules syntax, it uses `import`.
+   - This approach leverages the native module system and dynamically imports the file, allowing it to handle more complex JavaScript logic and dynamic imports.
+   - It avoids string manipulations and regex, which can potentially improve performance, especially for larger files.
+   - Suitable for scenarios where the file structure can be either CommonJS or ES modules and involves more complex JavaScript logic.
+*/
+export const readFile = async (filePath) => {
+    try {
+      // Create a require function that supports ES modules
+      const require = createRequire(import.meta.url);
+  
+      // Resolve the absolute path to the file
+      const absolutePath = path.resolve(filePath);
+      // Read the file contents
+      const rawData = await fs.readFile(filePath, 'utf8');
+
+      // Check if the file uses CommonJS or ES modules syntax
+      let data;
+      if (rawData.includes('module.exports')) {
+        // For CommonJS, use require
+        data = require(absolutePath);
+        data = data.default || data;
+      } else {
+        // For ES modules, use import
+        data = await import(absolutePath);
+        data = data.default || data;
+      }
+  
+      console.log('title: ', data.title);
+      console.log(data);
+    } catch (error) {
+      throw error;
+    }
+};
+
+
+/* 
+1. `readFile2`:
+   - Reads the file using `fs.readFile` and parses the data using regular expressions and JSON5 library.
+   - It performs string manipulations to remove the `export default` or `module.exports` statement and the trailing semicolon.
+   - Then it uses `JSON5.parse` to parse the resulting JSON-like data.
+   - This approach relies on string manipulations and regex, which can have some performance impact for larger files.
+   - Suitable for scenarios where the file structure is known to be JSON-like and doesn't involve complex JavaScript logic.
+*/
+export const readFile2 = async (filePath) => {
+    try {
+        // Get contents from filePath
+        const rawData = await fs.readFile(filePath, 'utf8');
+
+        // Remove export default or module.exports statement
+        let trimmedData = rawData.replace(/(module\.exports\s*=\s*|export\s+default\s*)/, '');
+        // Remove semicolon from the end of the file
+        trimmedData = trimmedData.replace(/;\s*$/, '');
+
+        // Parse the JSON5 data
+        const jsonData = JSON5.parse(trimmedData);
+
+        console.log('jsonData: ', jsonData);
+
+        console.log('title: ', jsonData.title); 
+        
+        
+    } catch (error) {
+        console.log(error);
+    }
+};
+
+
+  
 
 // Spinner function
 export const spinner = (action, options = {}) => {

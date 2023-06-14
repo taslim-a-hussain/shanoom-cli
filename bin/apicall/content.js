@@ -18,3 +18,35 @@ export const createContentCall = async (token, domainName, data) => {
         throw new Error(error.response.data.message || error.message);
     }
 };
+
+
+// Get content for a domain (By domain name and content name)
+export const getContentCall = async (token, domainName, contentName) => {
+    try {
+        const response = await axios.get(
+            `${url}/${domainName}/${contentName}`,
+            {
+                headers: { Authorization: `Bearer ${token}` }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        throw new Error(error.response.data.message || error.message);
+    }
+};
+
+
+// Content Manager for a domain 
+// export const contentManagerCall = async (token, domainName) => {
+//     try {
+//         const response = await axios.patch(
+//             `${url}/${domainName}`,
+//             {
+//                 headers: { Authorization: `Bearer ${token}` }
+//             }
+//         );
+//         return response.data;
+//     } catch (error) {
+//         throw new Error(error.response.data.message || error.message);
+//     }
+// };

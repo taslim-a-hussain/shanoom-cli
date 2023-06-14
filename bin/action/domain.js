@@ -1,48 +1,7 @@
 import inquirer from 'inquirer';
 import chalk from 'chalk';
-import { ftrim } from 'gokit';
 import { isoDateParse } from '../lib/index.js';
-import { createDomainCall, getDomainsCall, getDomainCall, deleteDomainCall, deleteDomainsCall } from '../apicall/domain.js';
-
-
-// Valid constants
-const domainNameMinLength = 2;
-
-
-// Create Domain Action (Ask for domain name, and description. Description is optional)
-export const createDomain = async (token) => {
-  try {
-    const answers = await inquirer.prompt([
-      {
-        type: 'input',
-        name: 'name',
-        message: 'Domain name:',
-        validate: (input) => {
-          if (input.length < domainNameMinLength) {
-            return chalk.red(`Domain name must be at least ${domainNameMinLength} characters long`);
-          }
-          return true;
-        }
-      },
-      {
-        type: 'input',
-        name: 'description',
-        message: 'Description (optional):',
-      },
-    ]);
-
-    const data = {
-      ...answers
-    };
-    
-    await createDomainCall(token, data);
-
-    console.log(chalk.green(`Domain ${ftrim(data.name).replace(/\s+/g, '-').toLowerCase()} created successfully`));
-
-  } catch (error) {
-    console.error(chalk.red(`Error: ${error.message}`));
-  }
-};
+import { getDomainsCall, getDomainCall, deleteDomainCall, deleteDomainsCall } from '../apicall/domain.js';
 
 
 // List Domains Action
