@@ -173,9 +173,21 @@ export const readFile = async (filePath) => {
         data = await import(absolutePath);
         data = data.default || data;
       }
-  
-      console.log('title: ', data.title);
-      console.log(data);
+
+      // Check if data is a valid js object if not throw an error Invalid JS Object
+      if (typeof data !== 'object') {
+        throw new Error('Invalid JS Object');
+      };
+
+      // File name
+      const name = path.basename(filePath, path.extname(filePath)).split('.')[0];
+
+      // Hash
+      const hash = hashContent(JSON.stringify(data));
+
+      // Return content (in JS object format)
+      return {name, hash, data};
+      
     } catch (error) {
       throw error;
     }

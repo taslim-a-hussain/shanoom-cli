@@ -68,8 +68,6 @@ export const createContent = async (token, filePath, domainName) => {
     // Get the content from the package.json file
     const content = await readFile(filePath);
 
-    return;
-
     // First Check if content already exists in the database
     const contentExists = await getContentCall(token, domainName, content.name);
 

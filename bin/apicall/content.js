@@ -10,7 +10,10 @@ export const createContentCall = async (token, domainName, data) => {
             `${url}/${domainName}`,
             data,
             {
-                headers: { Authorization: `Bearer ${token}` }
+                headers: { 
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json' 
+                }
             }
         );
         return response.data;
