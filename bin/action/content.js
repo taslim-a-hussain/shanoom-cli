@@ -79,7 +79,9 @@ export const createContent = async (token, filePath, domainName) => {
     }
 
     // Create the content
-    await createContentCall(token, domainName, content);
+    const result = await createContentCall(token, domainName, content);
+
+    return result;
 
   } catch (error) {
     logError(chalk.red(`Error: ${error.message}`));
@@ -87,19 +89,23 @@ export const createContent = async (token, filePath, domainName) => {
 };
 
 
-const handleFileChanges = async (event, args={}, apiCallback) => {
+const handleFiles = async (event, args={}, apiCallback) => {
   try {
     if (event === 'exit') {
       process.exit(); // Exit the process when "exit" command is received
     } else if (event === 'added' || event === 'changed' || event === 'deleted') {
       const {token, filePath, domainName} = args;
-      await apiCallback(token, filePath, domainName);
+
+      const result = await apiCallback(token, filePath, domainName);
+
+      if (result) {
+        // Extract the relative file path by removing the cwd name
+        const relativePath = path.relative(process.cwd(), filePath);
     
-      // Extract the relative file path by removing the cwd name
-      const relativePath = path.relative(process.cwd(), filePath);
-  
-      // Perform CRUD operations or any other actions based on the file change event
-      log(chalk.blueBright.bold(`File ${relativePath} in ${domainName} has been ${event}`));
+        // Perform CRUD operations or any other actions based on the file change event
+        log(chalk.blueBright.bold(`File ${relativePath} in ${domainName} has been ${event}`));
+      }
+
     } else {
       const suggestedCommand = 'exit';
       const errorMessage = chalk.red(`Error: ${event} is not a valid event. Did you mean to use "${suggestedCommand}" command?`);
@@ -149,9 +155,9 @@ export const contentManager = async (token) => {
     });
 
     // Event listeners for file changes
-    watcher.on('add', (filePath) => handleFileChanges('added', {token, filePath, domainName}, createContent));
-    watcher.on('change', (filePath) => handleFileChanges('changed', filePath, domainName));
-    watcher.on('unlink', (filePath) => handleFileChanges('deleted', filePath, domainName));
+    watcher.on('add', (filePath) => handleFiles('added', {token, filePath, domainName}, createContent));
+    watcher.on('change', (filePath) => handleFiles('changed', filePath, domainName));
+    watcher.on('unlink', (filePath) => handleFiles('deleted', filePath, domainName));
 
     // Read user input
     process.stdin.resume();
@@ -159,7 +165,7 @@ export const contentManager = async (token) => {
 
     process.stdin.on('data', (data) => {
       const input = data.trim();
-      handleFileChanges(input, ''); // Pass the input as the event and empty path
+      handleFiles(input, ''); // Pass the input as the event and empty path
     });
 
   } catch (error) {
