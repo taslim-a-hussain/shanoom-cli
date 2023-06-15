@@ -152,7 +152,7 @@ export const filesContent = async () => {
    - It avoids string manipulations and regex, which can potentially improve performance, especially for larger files.
    - Suitable for scenarios where the file structure can be either CommonJS or ES modules and involves more complex JavaScript logic.
 */
-export const readFile = async (filePath) => {
+export const readFile2 = async (filePath) => {
     try {
       // Create a require function that supports ES modules
       const require = createRequire(import.meta.url);
@@ -202,7 +202,7 @@ export const readFile = async (filePath) => {
    - This approach relies on string manipulations and regex, which can have some performance impact for larger files.
    - Suitable for scenarios where the file structure is known to be JSON-like and doesn't involve complex JavaScript logic.
 */
-export const readFile2 = async (filePath) => {
+export const readFile = async (filePath) => {
     try {
         // Get contents from filePath
         const rawData = await fs.readFile(filePath, 'utf8');
@@ -213,12 +213,16 @@ export const readFile2 = async (filePath) => {
         trimmedData = trimmedData.replace(/;\s*$/, '');
 
         // Parse the JSON5 data
-        const jsonData = JSON5.parse(trimmedData);
+        const data = JSON5.parse(trimmedData);
 
-        console.log('jsonData: ', jsonData);
+        // File name
+        const name = path.basename(filePath, path.extname(filePath)).split('.')[0];
 
-        console.log('title: ', jsonData.title); 
-        
+        // Hash
+        const hash = hashContent(JSON.stringify(data));
+
+        // Return content (in JS object format)
+        return {name, hash, data};
         
     } catch (error) {
         console.log(error);

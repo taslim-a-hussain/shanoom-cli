@@ -23,6 +23,26 @@ export const createContentCall = async (token, domainName, data) => {
 };
 
 
+// Update content for a domain
+export const updateContentCall = async (token, domainName, contentName, data) => {
+    try {
+        const response = await axios.patch(
+            `${url}/${domainName}/${contentName}`,
+            data,
+            {
+                headers: { 
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json' 
+                }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        throw new Error(error.response.data.message || error.message);
+    }
+};
+
+
 // Get content for a domain (By domain name and content name)
 export const getContentCall = async (token, domainName, contentName) => {
     try {

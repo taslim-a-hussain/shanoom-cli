@@ -3,7 +3,7 @@ import path from 'path';
 import ora from 'ora';
 import { ftrim } from 'gokit';
 import { createDomainCall, getDomainCall } from '../apicall/domain.js';
-import { createContentCall, getContentCall } from '../apicall/content.js';
+import { createContentCall, updateContentCall, getContentCall } from '../apicall/content.js';
 import { filesContent, getCwdName, readFile } from '../lib/index.js';
 import { readPackage } from "read-pkg";
 import chokidar from 'chokidar';
@@ -73,9 +73,17 @@ export const createContent = async (token, filePath, domainName) => {
 
     // If content already exists, return
     if (contentExists) {
+
+      // Check content hash against existing content hash
+      if (contentExists.hash === content.hash) {
       // Log info message ('Watching content.name')
       log(chalk.greenBright.bold(`Watching content ${content.name} in ${domainName} domain.`));
       return;
+      } else {
+        // Update the content
+        const result = await updateContentCall(token, domainName, content.name, content);
+        return result;
+      }
     }
 
     // Create the content
@@ -86,6 +94,25 @@ export const createContent = async (token, filePath, domainName) => {
   } catch (error) {
     logError(chalk.red(`Error: ${error.message}`));
   }
+};
+
+
+// Update Content Action
+export const updateContent = async (token, filePath, domainName) => {
+  try {
+
+    // Get the content from the package.json file
+    const content = await readFile(filePath);
+
+    // Update the content
+    const result = await updateContentCall(token, domainName, content.name, content);
+
+    return result;
+
+  } catch (error) {
+    logError(chalk.red(`Error: ${error.message}`));
+  }
+
 };
 
 
@@ -101,9 +128,11 @@ const handleFiles = async (event, args={}, apiCallback) => {
       if (result) {
         // Extract the relative file path by removing the cwd name
         const relativePath = path.relative(process.cwd(), filePath);
+
+        const color = result === 'Created' ? 'greenBright' : result === 'Updated' ? 'yellowBright' : 'redBright';
     
         // Perform CRUD operations or any other actions based on the file change event
-        log(chalk.blueBright.bold(`File ${relativePath} in ${domainName} has been ${event}`));
+        log(chalk[color].bold(`File: ${relativePath} has been ${result.toLowerCase()}.`));
       }
 
     } else {
@@ -156,7 +185,7 @@ export const contentManager = async (token) => {
 
     // Event listeners for file changes
     watcher.on('add', (filePath) => handleFiles('added', {token, filePath, domainName}, createContent));
-    watcher.on('change', (filePath) => handleFiles('changed', filePath, domainName));
+    watcher.on('change', (filePath) => handleFiles('changed', {token, filePath, domainName}, updateContent));
     watcher.on('unlink', (filePath) => handleFiles('deleted', filePath, domainName));
 
     // Read user input
