@@ -7,6 +7,7 @@ import { createRequire } from 'module';
 import JSON5 from 'json5';
 import {hashContent} from './content-hash.js';
 
+
 const shanoomrcPath = path.join(process.env.HOME, '.shanoomrc');
 
 export const getToken = async () => {
@@ -229,8 +230,6 @@ export const readFile = async (filePath) => {
     }
 };
 
-
-  
 
 // Spinner function
 export const spinner = (action, options = {}) => {

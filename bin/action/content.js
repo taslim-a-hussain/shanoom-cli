@@ -3,7 +3,7 @@ import path from 'path';
 import ora from 'ora';
 import { ftrim } from 'gokit';
 import { createDomainCall, getDomainCall } from '../apicall/domain.js';
-import { createContentCall, updateContentCall, getContentCall } from '../apicall/content.js';
+import { createContentCall, updateContentCall, deleteContentCall, getContentCall } from '../apicall/content.js';
 import { filesContent, getCwdName, readFile } from '../lib/index.js';
 import { readPackage } from "read-pkg";
 import chokidar from 'chokidar';
@@ -116,37 +116,45 @@ export const updateContent = async (token, filePath, domainName) => {
 };
 
 
-const handleFiles = async (event, args={}, apiCallback) => {
+// Delete Content Action
+export const deleteContent = async (token, filePath, domainName) => {
   try {
-    if (event === 'exit') {
-      process.exit(); // Exit the process when "exit" command is received
-    } else if (event === 'added' || event === 'changed' || event === 'deleted') {
-      const {token, filePath, domainName} = args;
 
-      const result = await apiCallback(token, filePath, domainName);
+    // File name
+    const fileName = path.basename(filePath, path.extname(filePath)).split('.')[0];
 
-      if (result) {
-        // Extract the relative file path by removing the cwd name
-        const relativePath = path.relative(process.cwd(), filePath);
+    // Update the content
+    const result = await deleteContentCall(token, domainName, fileName);
 
-        const color = result === 'Created' ? 'greenBright' : result === 'Updated' ? 'yellowBright' : 'redBright';
-    
-        // Perform CRUD operations or any other actions based on the file change event
-        log(chalk[color].bold(`File: ${relativePath} has been ${result.toLowerCase()}.`));
-      }
+    return result;
 
-    } else {
-      const suggestedCommand = 'exit';
-      const errorMessage = chalk.red(`Error: ${event} is not a valid event. Did you mean to use "${suggestedCommand}" command?`);
-      logError(errorMessage);
+  } catch (error) {
+    logError(chalk.red(`Error: ${error.message}`));
+  }
+
+};
+
+
+const handleFiles = async (args={}, apiCallback) => {
+  try {
+    const {token, filePath, domainName} = args;
+
+    const result = await apiCallback(token, filePath, domainName);
+
+    if (result) {
+      // Extract the relative file path by removing the cwd name
+      const relativePath = path.relative(process.cwd(), filePath);
+
+      const color = result === 'Created' ? 'greenBright' : result === 'Updated' ? 'yellowBright' : 'redBright';
+  
+      // Perform CRUD operations or any other actions based on the file change event
+      log(chalk[color].bold(`File: ${relativePath} has been ${result.toLowerCase()}.`));
     }
 
   } catch (error) {
     log(chalk.red(`Error: ${error.message}`));
   }
 };
-
-
 
 
 // Content Manager Action
@@ -184,9 +192,9 @@ export const contentManager = async (token) => {
     });
 
     // Event listeners for file changes
-    watcher.on('add', (filePath) => handleFiles('added', {token, filePath, domainName}, createContent));
-    watcher.on('change', (filePath) => handleFiles('changed', {token, filePath, domainName}, updateContent));
-    watcher.on('unlink', (filePath) => handleFiles('deleted', filePath, domainName));
+    watcher.on('add', (filePath) => handleFiles({token, filePath, domainName}, createContent));
+    watcher.on('change', (filePath) => handleFiles({token, filePath, domainName}, updateContent));
+    watcher.on('unlink', (filePath) => handleFiles({token, filePath, domainName}, deleteContent));
 
     // Read user input
     process.stdin.resume();
@@ -194,7 +202,12 @@ export const contentManager = async (token) => {
 
     process.stdin.on('data', (data) => {
       const input = data.trim();
-      handleFiles(input, ''); // Pass the input as the event and empty path
+      // handleFiles(input, ''); // Pass the input as the event and empty path
+      if (input === 'exit') {
+        process.exit();
+      } else {
+        log(chalk.red(`Invalid input: ${input}. Use 'exit' to exit.`));
+      }
     });
 
   } catch (error) {
