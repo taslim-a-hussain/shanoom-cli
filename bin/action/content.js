@@ -65,18 +65,22 @@ const createDomainDecreetly = async (token, domainName) => {
 // Create Content Action
 export const createContent = async (token, filePath, domainName) => {
   try {
-    // Get the content from the package.json file
+    // Get the content 
     const content = await readFile(filePath);
+
+    // If not content (Because of an error thrown by the readFile function), return
+    if (!content) {
+      return;
+    }
 
     // First Check if content already exists in the database
     const contentExists = await getContentCall(token, domainName, content.name);
 
-    // If content already exists, return
+    // If content already exists, Check for changes
     if (contentExists) {
 
-      // Check content hash against existing content hash
+      // Check content hash against existing content hash (if they are the same, do nothing else update)
       if (contentExists.hash === content.hash) {
-      // Log info message ('Watching content.name')
       log(chalk.greenBright.bold(`Watching content ${content.name} in ${domainName} domain.`));
       return;
       } else {
@@ -92,6 +96,7 @@ export const createContent = async (token, filePath, domainName) => {
     return result;
 
   } catch (error) {
+    console.log('controller error: ', error);
     logError(chalk.red(`Error: ${error.message}`));
   }
 };
@@ -101,7 +106,7 @@ export const createContent = async (token, filePath, domainName) => {
 export const updateContent = async (token, filePath, domainName) => {
   try {
 
-    // Get the content from the package.json file
+    // Get the content 
     const content = await readFile(filePath);
 
     // Update the content
@@ -135,8 +140,8 @@ export const deleteContent = async (token, filePath, domainName) => {
 };
 
 
+
 const handleFiles = async (args={}, apiCallback) => {
-  try {
     const {token, filePath, domainName} = args;
 
     const result = await apiCallback(token, filePath, domainName);
@@ -151,9 +156,6 @@ const handleFiles = async (args={}, apiCallback) => {
       log(chalk[color].bold(`File: ${relativePath} has been ${result.toLowerCase()}.`));
     }
 
-  } catch (error) {
-    log(chalk.red(`Error: ${error.message}`));
-  }
 };
 
 
@@ -214,4 +216,3 @@ export const contentManager = async (token) => {
     logError(chalk.red(`Error: ${error.message}`));
   }
 };
-

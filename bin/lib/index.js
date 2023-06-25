@@ -204,31 +204,76 @@ export const readFile2 = async (filePath) => {
    - Suitable for scenarios where the file structure is known to be JSON-like and doesn't involve complex JavaScript logic.
 */
 export const readFile = async (filePath) => {
-    try {
+
         // Get contents from filePath
         const rawData = await fs.readFile(filePath, 'utf8');
+
+        const name = path.basename(filePath, path.extname(filePath)).split('.')[0];
+        let data = {};
+        let hash = hashContent(JSON.stringify(data));
+
+        if (!rawData) {
+            return {name, hash, data};
+        };
 
         // Remove export default or module.exports statement
         let trimmedData = rawData.replace(/(module\.exports\s*=\s*|export\s+default\s*)/, '');
         // Remove semicolon from the end of the file
         trimmedData = trimmedData.replace(/;\s*$/, '');
 
-        // Parse the JSON5 data
-        const data = JSON5.parse(trimmedData);
-
-        // File name
-        const name = path.basename(filePath, path.extname(filePath)).split('.')[0];
+        try {
+            // Parse the JSON5 data
+            data = JSON5.parse(trimmedData);
+        } catch (error) {
+            throw new Error('Invalid JS Object in file: ' + filePath);
+        }
 
         // Hash
-        const hash = hashContent(JSON.stringify(data));
+        hash = hashContent(JSON.stringify(data));
 
         // Return content (in JS object format)
         return {name, hash, data};
         
-    } catch (error) {
-        console.log(error);
-    }
 };
+
+
+// export const readFile = async (filePath) => {
+//     try {
+//       // Get contents from filePath
+//       const rawData = await fs.readFile(filePath, 'utf8');
+  
+//       if (!rawData) {
+//         console.log(`File ${filePath} is empty. Added new file: rerun the command to add the file`);
+//         return null;
+//       }
+  
+//       // Remove export default or module.exports statement
+//       let trimmedData = rawData.replace(/(module\.exports\s*=\s*|export\s+default\s*)/, '');
+//       // Remove semicolon from the end of the file
+//       trimmedData = trimmedData.replace(/;\s*$/, '');
+  
+//       // Parse the JSON5 data
+//       let data;
+//       try {
+//         data = JSON5.parse(trimmedData);
+//       } catch (error) {
+//         console.log(`Invalid JSON5 data in file ${filePath}.`);
+//         return null;
+//       }
+  
+//       // File name
+//       const name = path.basename(filePath, path.extname(filePath)).split('.')[0];
+  
+//       // Hash
+//       const hash = hashContent(JSON.stringify(data));
+  
+//       // Return content (in JS object format)
+//       return { name, hash, data };
+//     } catch (error) {
+//       console.log(error);
+//     }
+// };
+  
 
 
 // Spinner function
