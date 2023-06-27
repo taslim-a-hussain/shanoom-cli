@@ -18,4 +18,3 @@ export const verifyContent = (content, hashedContent) => {
     throw new Error('Error while verifying content');
   }
 };
-

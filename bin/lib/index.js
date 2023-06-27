@@ -16,8 +16,7 @@ export const getToken = async () => {
     const { token } = JSON.parse(fileContents);
     return token;
   } catch (error) {
-    console.error('Error reading .shanoomrc file:', error.message);
-    process.exit(1);
+    throw new Error('Error reading .shanoomrc file:', error.message);
   }
 };
 
@@ -134,7 +133,6 @@ export const filesContent = async () => {
             const textBetweenCurlyBrackets = matches[0]; // Get the first match
             const sanitizedText = textBetweenCurlyBrackets.replace(/'/g, '"'); // Replace single quotes with double quotes (JSON5 requires double quotes)
             const json5Data = (new Function(`return ${sanitizedText}`))(); // Evaluate the string as JavaScript code (using function constructor instead of eval to avoid security issues)
-
             
             data.push({name: fileName, data: json5Data});
         }        
@@ -235,45 +233,6 @@ export const readFile = async (filePath) => {
         return {name, hash, data};
         
 };
-
-
-// export const readFile = async (filePath) => {
-//     try {
-//       // Get contents from filePath
-//       const rawData = await fs.readFile(filePath, 'utf8');
-  
-//       if (!rawData) {
-//         console.log(`File ${filePath} is empty. Added new file: rerun the command to add the file`);
-//         return null;
-//       }
-  
-//       // Remove export default or module.exports statement
-//       let trimmedData = rawData.replace(/(module\.exports\s*=\s*|export\s+default\s*)/, '');
-//       // Remove semicolon from the end of the file
-//       trimmedData = trimmedData.replace(/;\s*$/, '');
-  
-//       // Parse the JSON5 data
-//       let data;
-//       try {
-//         data = JSON5.parse(trimmedData);
-//       } catch (error) {
-//         console.log(`Invalid JSON5 data in file ${filePath}.`);
-//         return null;
-//       }
-  
-//       // File name
-//       const name = path.basename(filePath, path.extname(filePath)).split('.')[0];
-  
-//       // Hash
-//       const hash = hashContent(JSON.stringify(data));
-  
-//       // Return content (in JS object format)
-//       return { name, hash, data };
-//     } catch (error) {
-//       console.log(error);
-//     }
-// };
-  
 
 
 // Spinner function

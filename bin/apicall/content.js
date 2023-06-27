@@ -18,8 +18,7 @@ export const createContentCall = async (token, domainName, data) => {
         );
         return response.data;
     } catch (error) {
-        console.log('Model error: ', error);
-        // throw new Error(error.response.data.message || error.message);
+        throw new Error(error.response.data.message || error.message);
     }
 };
 
@@ -39,8 +38,7 @@ export const updateContentCall = async (token, domainName, contentName, data) =>
         );
         return response.data;
     } catch (error) {
-        // console.log('Model (update) error: ', error);
-        // throw new Error(error.response.data.message || error.message);
+        throw new Error(error.response.data.message || error.message);
     }
 };
 
@@ -72,7 +70,6 @@ export const getContentCall = async (token, domainName, contentName) => {
         );
         return response.data;
     } catch (error) {
-        console.log('Model (get) error: ', error);
-        // throw new Error(error.response.data.message || error.message);
+        throw new Error(error.response.data.message || error.message);
     }
 };

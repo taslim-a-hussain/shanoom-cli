@@ -1,7 +1,7 @@
 {
   "name": "shanoom",
   "version": "1.0.3",
-  "description": "Developers tool to work with and manage contents",
+  "description": "Software Developer's CLI tool for content management.",
   "type": "module",
   "exports": {
     ".": "./bin/shanoom.js"
