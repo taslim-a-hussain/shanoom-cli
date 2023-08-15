@@ -4,10 +4,11 @@ import { fileURLToPath } from 'url';
 import path from 'path';
 import { program } from 'commander';
 import { login, whoami, profile, logout } from './action/user.js';
-import { listDomains, getDomain, deleteDomain, deleteDomains } from './action/domain.js';
-import { raw, contentManager } from './action/content.js';
+import { raw, contentManager, getContent, getContents } from './action/content.js';
 import {readPackage} from 'read-pkg';
 import {checkTokenFile, auth, notAuth, spinner} from './lib/index.js';
+import chalk from 'chalk';
+
 
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -30,7 +31,7 @@ program
 
 // Raw data command (shanoom raw) to view the raw data of the current directory
 program
-  .command('raw-contents')
+  .command('raw')
   .description('View the contents (from <filename>.data.shanoom.js) of the current directory')
   .action(() => {
     spinner(raw);
@@ -66,56 +67,52 @@ program
   }));
 
 
-// Content Manager command (shanoom contentManager)
+// Get content command (shanoom getContent or shanoom get-content)
 program
-  .command('contentManager')
-  .description('Will update, delete, and create content into your account')
-  .action(() => spinner(async () => {
-    await auth(contentManager);
-  }));
-  
-
-
-// Get Domain command (shanoom getDomain) by domain name if no domain name is provided, get all domains or if -a is provided, get all domains
-program
-  .command('getDomain')
-  .description('Get a domain by domain name or get all domains')
-  .option('-a, --all', 'Get all domains')
-  .option('-n, --name <name>', 'Get a domain by domain name')
-  .action((options) => {
-    if (options.all) {
+  .command('getContent')
+  .alias('get-content')
+  .description(`Get a content by a content's name`)
+  .option('-n, --name <name>', 'Get a content by content name')
+  .action(async (options) => {
+    if (options.name) {
       spinner(async () => {
-        await auth(listDomains);
-      });
-    } else if (options.name) {
-      spinner(async () => {
-        await auth(getDomain, options.name);
+        await auth(getContent, options.name);
       });
     } else {
-      // Run: shanoom getDomain -h programmaticaly
-      program.parse(['node', 'shanoom.js', 'getDomain', '-h']);
+            await auth(() => {
+            // Print to user: option -n <name> is required
+            console.log(chalk.yellowBright('Option -n <name> is required' + '\n'));
+
+            // Run: shanoom getDomain -h programmaticaly
+            program.parse(['node', 'shanoom.js', 'get-content', '-h']);
+        })
     }
   });
 
 
-// Delete Domain by name command (shanoom deleteDomain <domainName>)
+// Get all content command (shanoom getContents or shanoom get-contents)
 program
-  .command('deleteDomain <domainName>')
-  .description('Delete a domain by domain name')  
-  .action((domainName) => spinner(async () => {
-    await auth(deleteDomain, domainName); 
-  }));
+  .command('getContents')
+  .alias('get-contents')
+  .description('Get all the contents under current domain')
+  .action(() => {
+    spinner(async () => {
+      await auth(getContents);
+    });
+  });
+  
 
-
-// Delete All Domains command (shanoom deleteDomains)
+// Content Manager command (shanoom contentManager)
 program
-  .command('deleteDomains')
-  .description('Delete all domains')
-  .action(() => spinner(async () => {
-    await auth(deleteDomains);
-  }));
-
-
+  .command('watch')
+  .description('Will watch for changes and will update, delete, and create content into your account')
+  .action(async () => {
+    await auth();
+    spinner(async () => {
+      await auth(contentManager);
+    }, {endMessage: 'Watching for changes...'})
+  });
+  
 
 // Logout command
 program

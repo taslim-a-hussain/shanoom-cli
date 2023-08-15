@@ -73,3 +73,19 @@ export const getContentCall = async (token, domainName, contentName) => {
         throw new Error(error.response.data.message || error.message);
     }
 };
+
+
+// Get all content for a domain (By domain name)
+export const getContentsCall = async (token, domainName) => {
+    try {
+        const response = await axios.get(
+            `${url}/list/${domainName}`,
+            {
+                headers: { Authorization: `Bearer ${token}` }
+            }
+        );
+        return response.data;
+    } catch (error) {
+        throw new Error(error.response.data.message || error.message);
+    }
+};

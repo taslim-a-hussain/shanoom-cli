@@ -3,8 +3,8 @@ import path from 'path';
 import ora from 'ora';
 import { ftrim } from 'gokit';
 import { createDomainCall, getDomainCall } from '../apicall/domain.js';
-import { createContentCall, updateContentCall, deleteContentCall, getContentCall } from '../apicall/content.js';
-import { filesContent, getCwdName, readFile } from '../lib/index.js';
+import { createContentCall, updateContentCall, deleteContentCall, getContentCall, getContentsCall } from '../apicall/content.js';
+import { filesContent, getCwdName, isoDateParse, readFile } from '../lib/index.js';
 import { readPackage } from "read-pkg";
 import chokidar from 'chokidar';
 
@@ -132,6 +132,50 @@ export const deleteContent = async (token, filePath, domainName) => {
     const result = await deleteContentCall(token, domainName, fileName);
 
     return result;
+
+  } catch (error) {
+    logError(chalk.red(`Error: ${error.message}`));
+  }
+
+};
+
+
+// Get Content Action
+export const getContent = async (token, contentName) => {
+  try {
+
+    // Get domain name
+    const domainName = path.basename(process.cwd());
+
+    // Get the content by content name
+    const result = await getContentCall(token, domainName, contentName);
+    log('content: ', result.name);
+    log(result.data);
+
+  } catch (error) {
+    logError(chalk.red(`Error: ${error.message}`));
+  }
+
+};
+
+
+// Get all Content Action
+export const getContents = async (token) => {
+  try {
+    // Get domain name
+    const domainName = path.basename(process.cwd());
+
+    // Get the content by content name
+    const result = await getContentsCall(token, domainName);
+
+    // Loop through the contents and print result.name and result.data
+    for (const item of result) {
+      log(chalk.bgWhite.blueBright(' Content: ') + chalk.bgBlueBright.whiteBright(` ${item.name} `));
+      log(chalk.whiteBright(` CreatedAt: `) + isoDateParse(item.createdAt));
+      log(chalk.whiteBright(` UpdatedAt: `) + isoDateParse(item.updatedAt));
+      log(item.data);
+      log(chalk.green('='.repeat(80)) + '\n');
+    }
 
   } catch (error) {
     logError(chalk.red(`Error: ${error.message}`));
