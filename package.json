@@ -1,6 +1,6 @@
 {
   "name": "shanoom",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Software Developer's CLI tool for content management.",
   "type": "module",
   "exports": {
@@ -32,7 +32,6 @@
     "gokit": "^1.1.0",
     "inquirer": "^9.1.5",
     "json5": "^2.2.3",
-    "ora": "^6.3.0",
-    "read-pkg": "^8.0.0"
+    "ora": "^6.3.0"
   }
 }

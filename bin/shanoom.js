@@ -1,20 +1,20 @@
 #!/usr/bin/env node
 
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import { program } from 'commander';
 import { login, whoami, profile, logout } from './action/user.js';
 import { raw, contentManager, getContent, getContents } from './action/content.js';
-import {readPackage} from 'read-pkg';
 import {checkTokenFile, auth, notAuth, spinner} from './lib/index.js';
 import chalk from 'chalk';
 
 
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const packageJsonPath = path.resolve(__dirname, '../');
-
-const pkg = await readPackage({cwd: packageJsonPath});
+const packageJsonPath = path.resolve(__dirname, '../package.json');
+const packageJsonContent = fs.readFileSync(packageJsonPath, 'utf-8');
+const pkg = JSON.parse(packageJsonContent);
 
 // Check if the .shanoomrc file exists in the user's directory and if it does, read the token else create the file
 checkTokenFile();
