@@ -1,3 +1,4 @@
+import fs from 'fs';
 import chalk from 'chalk';
 import path from 'path';
 import ora from 'ora';
@@ -5,7 +6,6 @@ import { ftrim } from 'gokit';
 import { createDomainCall, getDomainCall } from '../apicall/domain.js';
 import { createContentCall, updateContentCall, deleteContentCall, getContentCall, getContentsCall } from '../apicall/content.js';
 import { filesContent, getCwdName, isoDateParse, readFile } from '../lib/index.js';
-import { readPackage } from "read-pkg";
 import chokidar from 'chokidar';
 
 
@@ -45,8 +45,13 @@ export const raw = async () => {
 const createDomainDecreetly = async (token, domainName) => {
     try {
 
-      // If package.json file exists, read the description from it
-      const pkg = await readPackage({cwd: process.cwd()});
+      const packagePath = `${process.cwd()}/package.json`;
+
+      // Read the package.json file
+      const packageData = await fs.promises.readFile(packagePath, "utf-8");
+      const pkg = JSON.parse(packageData);
+
+      // Get the description from package.json or set it to an empty string
       const description = pkg.description || '';
       
       const data = {
