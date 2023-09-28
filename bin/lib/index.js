@@ -3,9 +3,9 @@ import fsync from "fs";
 import path from "path";
 import { glob } from "glob";
 import ora from "ora";
-import { createRequire } from "module";
 import JSON5 from "json5";
 import { hashContent } from "./content-hash.js";
+import yaml from "js-yaml";
 
 const shanoomrcPath = path.join(process.env.HOME, ".shanoomrc");
 
@@ -118,6 +118,26 @@ const getFiles = async () => {
 };
 
 /**
+ * Search for files matching a pattern and return an array of objects with the file name as key and the file path as value
+ * @returns {Promise<Array>} Of object with file name as key and file path as value
+ */
+const getDataFiles = async () => {
+	const pattern = "**/*.data.{yml,yaml}"; // Pattern to match files
+
+	const fileNameRegex = /([^/]+)\.data\.(yml|yaml)$/; // Regex to extract the file name from the file path
+
+	const rawFiles = await glob(pattern, { ignore: "node_modules/**" }); // Get all files matching the pattern
+
+	// Create an array of objects with the file name as key and the file path as value
+	const filesObj = rawFiles.map((file) => {
+		const fileName = file.match(fileNameRegex)[1];
+		return { [fileName]: file };
+	});
+
+	return filesObj;
+};
+
+/**
  * From an array of objects with the file name as key and the file path as value, * return an object with the file name as key and the file content as value
  * @param {Array} filesObj Array of objects with the file name as key and the file * * * path as value
  * @returns {Promise<Object>} Object with the file name as key and the file content as * value
@@ -149,6 +169,30 @@ export const filesContent = async () => {
 	}
 
 	return data;
+};
+
+/**
+ * Returns an array of objects containing the name and data of each file in the data directory.
+ * @returns {Promise<Array<{name: string, data: any}>>} An array of objects containing the name and data of each .data.[yml|yaml] file.
+ */
+export const dataFileContents = async () => {
+	const files = await getDataFiles();
+
+	const contents = [];
+
+	// Loop through the array of objects and read file names and paths
+	for (const file of files) {
+		const fileName = Object.keys(file)[0];
+		const filePath = Object.values(file)[0];
+
+		// Read the file content
+		const fileContent = await fs.readFile(path.resolve(filePath), "utf8");
+		const data = yaml.load(fileContent);
+
+		contents.push({ name: fileName, data });
+	}
+
+	return contents;
 };
 
 /* 

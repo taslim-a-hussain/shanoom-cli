@@ -6,28 +6,39 @@ import ora from "ora";
 import { ftrim } from "gokit";
 import { createDomainCall, getDomainCall } from "../apicall/domain.js";
 import { createContentCall, updateContentCall, deleteContentCall, getContentCall, getContentsCall } from "../apicall/content.js";
-import { filesContent, getCwdName, isoDateParse, readFile } from "../lib/index.js";
+import { dataFileContents, getCwdName, isoDateParse, readFile } from "../lib/index.js";
 import chokidar from "chokidar";
 
 const domainNameMinLength = 2;
 
 const { log, error: logError } = console;
 
+const bgBlueShade = chalk.bgHex("#24455AFF");
+const bgYellowShade = chalk.bgHex("#FFC331FF");
+const blueShade = chalk.hex("#24455AFF");
+const yellowShade = chalk.hex("#FFC331FF");
+
 // Raw Action
 export const raw = async () => {
 	try {
-		const data = await filesContent();
+		const data = await dataFileContents();
 
 		const cwdName = getCwdName();
 
-		log(chalk.bgWhite.blueBright(" domainName: ") + chalk.bgBlueBright.whiteBright(` ${cwdName} `));
+		log("\n" + bgBlueShade(yellowShade(" domainName: ")) + bgYellowShade(blueShade(` ${cwdName} `)));
 
 		// Print out the total number of files
 		log(chalk.green(` Total: ${data.length} content(s) \n`));
 
 		// Loop through the data and print it if createdAt and updatedAt format it (output = `${key}: ${isoDateParse(value)}`;)
 		for (const item of data) {
-			log(JSON.stringify(item, null, 4) + "\n");
+			// log(JSON.stringify(item, null, 4) + "\n");
+
+			// Print out the content name
+			log(chalk.bgWhite.blueBright(" Content: ") + chalk.bgBlueBright.whiteBright(` ${item.name} `));
+
+			// Print out the data
+			log(item.data);
 
 			// Print a full horizental separator
 			log(chalk.green("=".repeat(80)) + "\n");
