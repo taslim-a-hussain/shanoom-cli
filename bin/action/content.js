@@ -238,7 +238,7 @@ export const contentManager = async (token) => {
 
 		// Initialize the Chokidar watcher
 		const watcher = chokidar.watch(filePattern, {
-			ignored: /(^|[\/\\])\../, // ignore dotfiles
+			ignored: /(^|[\\/])\../, // ignore dotfiles
 			persistent: true
 		});
 
