@@ -6,7 +6,7 @@ import ora from "ora";
 import { ftrim } from "gokit";
 import { createDomainCall, getDomainCall } from "../apicall/domain.js";
 import { createContentCall, updateContentCall, deleteContentCall, getContentCall, getContentsCall } from "../apicall/content.js";
-import { dataFileContents, getCwdName, isoDateParse, readFile } from "../lib/index.js";
+import { dataFileContents, prepareData, getCwdName, isoDateParse } from "../lib/index.js";
 import chokidar from "chokidar";
 
 const domainNameMinLength = 2;
@@ -25,7 +25,7 @@ export const raw = async () => {
 
 		const cwdName = getCwdName();
 
-		log("\n" + bgBlueShade(yellowShade(" domainName: ")) + bgYellowShade(blueShade(` ${cwdName} `)));
+		log("\n" + bgBlueShade(yellowShade(" Domain: ")) + bgYellowShade(blueShade(` ${cwdName} `)));
 
 		// Print out the total number of files
 		log(chalk.green(` Total: ${data.length} content(s) \n`));
@@ -75,7 +75,7 @@ const createDomainDecreetly = async (token, domainName) => {
 export const createContent = async (token, filePath, domainName) => {
 	try {
 		// Get the content
-		const content = await readFile(filePath);
+		const content = await prepareData(filePath);
 
 		// If not content (Because of an error thrown by the readFile function), return
 		if (!content) {
@@ -103,21 +103,27 @@ export const createContent = async (token, filePath, domainName) => {
 
 		return result;
 	} catch (error) {
-		console.log("controller error: ", error);
 		logError(chalk.red(`Error: ${error.message}`));
 	}
 };
 
-// Update Content Action
+// Update Content Action (If content has changed since last update)
 export const updateContent = async (token, filePath, domainName) => {
 	try {
 		// Get the content
-		const content = await readFile(filePath);
+		const content = await prepareData(filePath);
 
-		// Update the content
-		const result = await updateContentCall(token, domainName, content.name, content);
+		// Get the content hash from the database
+		const dbContent = await getContentCall(token, domainName, content.name);
 
-		return result;
+		const dbContentHash = dbContent.hash;
+
+		const contentHash = content.hash;
+
+		if (dbContentHash !== contentHash) {
+			// Update the content
+			return await updateContentCall(token, domainName, content.name, content);
+		}
 	} catch (error) {
 		logError(chalk.red(`Error: ${error.message}`));
 	}
@@ -245,7 +251,7 @@ export const contentManager = async (token) => {
 		}
 
 		// Define the glob pattern for the files to be tracked
-		const filePattern = `${process.cwd()}/**/*.data.{js,mjs}`;
+		const filePattern = `${process.cwd()}/**/*.data.{yml,yaml}`;
 
 		// Initialize the Chokidar watcher
 		const watcher = chokidar.watch(filePattern, {
