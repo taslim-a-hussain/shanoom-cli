@@ -1,42 +1,43 @@
 {
-  "name": "shanoom",
-  "version": "1.0.4",
-  "description": "Software Developer's CLI tool for content management.",
-  "type": "module",
-  "exports": {
-    ".": "./bin/shanoom.js"
-  },
-  "bin": {
-    "shanoom": "./bin/shanoom.js"
-  },
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/taslim-a-hussain/shanoom-cli.git"
-  },
-  "author": "taz-sen",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/taslim-a-hussain/shanoom-cli/issues"
-  },
-  "homepage": "https://github.com/taslim-a-hussain/shanoom-cli#readme",
-  "dependencies": {
-    "axios": "^1.3.5",
-    "chalk": "^5.2.0",
-    "chokidar": "^3.5.3",
-    "commander": "^10.0.0",
-    "crc-32": "^1.2.2",
-    "glob": "^10.2.3",
-    "gokit": "^1.1.0",
-    "inquirer": "^9.1.5",
-    "js-yaml": "^4.1.0",
-    "json5": "^2.2.3",
-    "ora": "^6.3.0"
-  },
-  "devDependencies": {
-    "eslint": "^8.50.0",
-    "eslint-plugin-prettier": "^5.0.0"
-  }
+	"name": "shanoom",
+	"version": "1.0.4",
+	"description": "Software Developer's CLI tool for content management.",
+	"type": "module",
+	"exports": {
+		".": "./bin/shanoom.js"
+	},
+	"bin": {
+		"shanoom": "./bin/shanoom.js"
+	},
+	"scripts": {
+		"test": "mocha --recursive"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/taslim-a-hussain/shanoom-cli.git"
+	},
+	"author": "taz-sen",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/taslim-a-hussain/shanoom-cli/issues"
+	},
+	"homepage": "https://github.com/taslim-a-hussain/shanoom-cli#readme",
+	"dependencies": {
+		"axios": "^1.3.5",
+		"chalk": "^5.2.0",
+		"chokidar": "^3.5.3",
+		"commander": "^10.0.0",
+		"crc-32": "^1.2.2",
+		"glob": "^10.2.3",
+		"gokit": "^1.1.0",
+		"inquirer": "^9.1.5",
+		"js-yaml": "^4.1.0",
+		"json5": "^2.2.3",
+		"ora": "^6.3.0"
+	},
+	"devDependencies": {
+		"chai": "^4.3.10",
+		"eslint": "^8.50.0",
+		"mocha": "^10.2.0"
+	}
 }
