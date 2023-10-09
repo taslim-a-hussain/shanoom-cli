@@ -5,8 +5,8 @@ import { fileURLToPath } from "url";
 import path from "path";
 import { program } from "commander";
 import { login, whoami, profile, logout } from "./action/user.js";
-import { raw, contentManager, getContent, getContents, getAllData } from "./action/content.js";
-import { checkTokenFile, auth, notAuth, spinner } from "./lib/index.js";
+import { raw, contentManager, getContent, getContents, syncData } from "./action/content.js";
+import { checkTokenFile, auth, notAuth } from "./lib/index.js";
 import chalk from "chalk";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -21,12 +21,7 @@ checkTokenFile();
 program.name(pkg.name).description(pkg.description).version(pkg.version, "-v, --version, -V", "output the current version");
 
 // Raw data command (shanoom raw) to view the raw data of the current directory
-program
-	.command("raw")
-	.description("View the contents (from <filename>.data.shanoom.js) of the current directory")
-	.action(() => {
-		spinner(raw);
-	});
+program.command("raw").description("View the contents (from <filename>.data.shanoom.js) of the current directory").action(raw);
 
 // Login command
 program
@@ -80,13 +75,13 @@ program
 		await auth(getContents);
 	});
 
-// Get all data command (shanoom getAllData or shanoom get-all-data)
+// Sync data command (shanoom syncData or shanoom sync-data)
 program
-	.command("getAllData")
-	.alias("get-all-data")
-	.description("Get all the data under current domain")
+	.command("syncData")
+	.alias("sync-data")
+	.description("Sync data from the server to your local machine")
 	.action(async () => {
-		await auth(getAllData);
+		await auth(syncData);
 	});
 
 // Content Manager command (shanoom contentManager)
@@ -94,7 +89,7 @@ program
 	.command("watch")
 	.description("Will watch for changes and will update, delete, and create content into your account")
 	.action(async () => {
-		await auth(contentManager, { endMessage: "Watching for changes..." });
+		await auth(contentManager);
 	});
 
 // Logout command

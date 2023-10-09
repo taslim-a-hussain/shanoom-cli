@@ -2,9 +2,8 @@ import fs from "fs/promises";
 import fsync from "fs";
 import path from "path";
 import { glob } from "glob";
-import ora from "ora";
-import { hashContent } from "./content-hash.js";
 import yaml from "js-yaml";
+import chokidar from "chokidar";
 
 const shanoomrcPath = path.join(process.env.HOME, ".shanoomrc");
 
@@ -36,34 +35,35 @@ export const checkTokenFile = () => {
 };
 
 // Spinner function
-export const spinner = (action, options = {}) => {
-	const startMessage = options.startMessage || "Wait a moment...";
-	const endMessage = options.endMessage || `👍`;
+// export const spinner = (action, options = {}) => {
+// 	const startMessage = options.startMessage || "Wait a moment...";
+// 	const endMessage = options.endMessage || `👍`;
 
-	const spin = ora(startMessage).start();
+// 	const spin = ora(startMessage).start();
 
-	action();
-	spin.succeed(endMessage);
-};
+// 	action();
+// 	spin.succeed(endMessage);
+// };
 
-const loader = (next, token, ops = {}) => {
-	const startMessage = ops.startMessage || "Wait a moment...";
-	const endMessage = ops.endMessage || `👍`;
+// const loader = (next, token, options) => {
+// 	// const startMessage = ops.startMessage || "Wait a moment...";
+// 	// const endMessage = ops.endMessage || `👍`;
 
-	const spinner = ora(startMessage).start();
+// 	// const spinner = ora(startMessage).start();
 
-	next(token, ops.option);
-	spinner.succeed(endMessage);
-};
+// 	next(token, options);
+// 	// spinner.succeed(endMessage);
+// };
 
 // Create a middleware function to check if the user is logged in, for authenticated operations
-export const auth = async (next, ops = {}) => {
+export const auth = async (next, options = {}) => {
 	const token = await getToken();
 	if (!token) {
 		console.log("You are not logged in");
-		process.exit(1);
+		process.exit();
 	}
-	loader(next, token, ops);
+	// loader(next, token, options);
+	next(token, options);
 };
 
 // Middleware to check if the user is already logged in, for unauthenticated operations
@@ -71,7 +71,7 @@ export const notAuth = async (next) => {
 	const token = await getToken();
 	if (token) {
 		console.log("You are already logged in");
-		process.exit(1);
+		process.exit();
 	}
 	next();
 };
@@ -116,6 +116,17 @@ const getDataFiles = async () => {
 	return filesObj;
 };
 
+// Remove all data files from the project directory matching the pattern **/*.data.{yml,yaml}
+export const removeDataFiles = () => {
+	const pattern = "**/*.data.{yml,yaml}";
+	const files = glob.sync(pattern, { ignore: "node_modules/**" });
+
+	// Delete all files
+	for (const file of files) {
+		fsync.unlinkSync(file);
+	}
+};
+
 /**
  * Returns an array of objects containing the name and data of each file in the data directory.
  * @returns {Promise<Array<{name: string, data: any}>>} An array of objects containing the name and data of each .data.[yml|yaml] file.
@@ -134,7 +145,7 @@ export const dataFileContents = async () => {
 		const fileContent = await fs.readFile(path.resolve(filePath), "utf8");
 		const data = yaml.load(fileContent);
 
-		contents.push({ name: fileName, data });
+		contents.push({ name: fileName, path: filePath, data });
 	}
 
 	return contents;
@@ -143,28 +154,26 @@ export const dataFileContents = async () => {
 export const prepareData = async (filePath) => {
 	try {
 		let fileContent = await fs.readFile(filePath, "utf8");
+
 		// trim the file content
 		fileContent = fileContent.trim();
+
 		// Get the file name
 		const name = path.basename(filePath, path.extname(filePath)).split(".")[0];
+
+		// Get relative file path from passed filePath
+		const relativePath = filePath.replace(process.cwd(), ".");
+
 		let data = {};
-		let hash = hashContent(JSON.stringify(data));
 
 		if (!fileContent) {
-			return { name, hash, data };
+			return { name, path: relativePath, data };
 		}
 
 		data = yaml.load(fileContent);
 
-		// Check if data is a valid JS object if not make data an empty object
-		if (typeof data !== "object") {
-			data = {};
-		}
-
-		hash = hashContent(JSON.stringify(data));
-
 		// Return content (in JS object format)
-		return { name, hash, data };
+		return { name, path: relativePath, data };
 	} catch (error) {
 		throw new Error("Error reading data file:", error.message);
 	}
@@ -175,4 +184,18 @@ export const getCwdName = () => {
 	const cwd = process.cwd();
 	const cwdName = cwd.split(path.sep).pop();
 	return cwdName;
+};
+
+// Export watchman function
+export const watchman = () => {
+	// Define the glob pattern for the files to be tracked
+	const filePattern = `${process.cwd()}/**/*.data.{yml,yaml}`;
+
+	// Initialize the Chokidar watchman
+	const watchman = chokidar.watch(filePattern, {
+		ignored: /(^|[\\/])\../, // ignore dotfiles
+		persistent: true
+	});
+
+	return watchman;
 };

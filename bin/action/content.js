@@ -6,8 +6,9 @@ import ora from "ora";
 import { ftrim } from "gokit";
 import { createDomainCall, getDomainCall } from "../apicall/domain.js";
 import { createContentCall, updateContentCall, deleteContentCall, getContentCall, getContentsCall } from "../apicall/content.js";
-import { dataFileContents, prepareData, getCwdName, isoDateParse } from "../lib/index.js";
-import chokidar from "chokidar";
+import { dataFileContents, prepareData, getCwdName, isoDateParse, removeDataFiles, watchman } from "../lib/index.js";
+
+const spinner = ora(); // Initialize a single spinner instance
 
 const domainNameMinLength = 2;
 
@@ -82,26 +83,14 @@ export const createContent = async (token, filePath, domainName) => {
 			return;
 		}
 
-		// First Check if content already exists in the database
-		const contentExists = await getContentCall(token, domainName, content.name);
-
-		// If content already exists, Check for changes
-		if (contentExists) {
-			// Check content hash against existing content hash (if they are the same, do nothing else update)
-			if (contentExists.hash === content.hash) {
-				log(chalk.greenBright.bold(`Watching content ${content.name} in ${domainName} domain.`));
-				return;
-			} else {
-				// Update the content
-				const result = await updateContentCall(token, domainName, content.name, content);
-				return result;
-			}
-		}
-
 		// Create the content
 		const result = await createContentCall(token, domainName, content);
 
-		return result;
+		if (result !== "No changes") {
+			return result;
+		}
+
+		spinner.succeed(chalk.greenBright.bold(`Watching content ${content.name} in ${domainName} domain.`));
 	} catch (error) {
 		logError(chalk.red(`Error: ${error.message}`));
 	}
@@ -181,8 +170,8 @@ export const getContents = async (token) => {
 	}
 };
 
-// Get all data content Action
-export const getAllData = async (token) => {
+// Sync data content into the project directory Action
+export const syncData = async (token) => {
 	try {
 		// Get domain name
 		const domainName = path.basename(process.cwd());
@@ -190,21 +179,16 @@ export const getAllData = async (token) => {
 		// Get the content by content name
 		const result = await getContentsCall(token, domainName);
 
-		// Loop through the contents and print result.name and result.data
 		for (const item of result) {
-			const { name, data } = item;
-			// filename is the name of the content (e.g. user.data.js)
-			const filename = `${name}.data.yml`;
-			// Get the file path
-			const filePath = `${process.cwd()}/${filename}`;
+			const { name, path, data } = item;
 
 			// Convert the data to YAML format
 			const yamlData = yaml.dump(data);
 
 			// Write the data to the file
-			await fs.writeFile(filePath, yamlData);
+			await fs.writeFile(path, yamlData);
 
-			console.log(chalk.greenBright.bold(`File: ${filename} created successfully.`));
+			log(chalk.greenBright.bold(`Data file "${name}" successfully synchronized.`));
 		}
 	} catch (error) {
 		logError(chalk.red(`Error: ${error.message}`));
@@ -216,26 +200,46 @@ const handleFiles = async (args = {}, apiCallback) => {
 
 	const result = await apiCallback(token, filePath, domainName);
 
-	if (result) {
+	if (result && result !== "No changes") {
 		// Extract the relative file path by removing the cwd name
 		const relativePath = path.relative(process.cwd(), filePath);
 
 		const color = result === "Created" ? "greenBright" : result === "Updated" ? "yellowBright" : "redBright";
 
 		// Perform CRUD operations or any other actions based on the file change event
-		log(chalk[color].bold(`File: ${relativePath} has been ${result.toLowerCase()}.`));
+		spinner.succeed(chalk[color].bold(`File: ${relativePath} has been ${result.toLowerCase()}.`));
 	}
 };
 
 // Content Manager Action
 export const contentManager = async (token) => {
 	try {
+		// Set the initial text for the spinner
+		spinner.start("Initializing...");
+
+		spinner.info("Watching for changes...");
+
+		const watcher = watchman();
+
+		// First check if package.json exists in the current working directory
+		const packageJsonExists = await fs
+			.access("./package.json")
+			.then(() => true)
+			.catch(() => false);
+
+		if (!packageJsonExists) {
+			spinner.info("Should run the command in the root directory of your project.");
+			spinner.fail("package.json does not exist in the current working directory");
+			return;
+		}
+
 		// Get the current working directory name
 		const domainName = path.basename(process.cwd());
 
 		// Validate the domain name
 		if (domainName.length < domainNameMinLength) {
-			log(chalk.red(`Domain name (${domainName}) must be at least ${domainNameMinLength} characters long.`));
+			// log(chalk.red(`Domain name (${domainName}) must be at least ${domainNameMinLength} characters long.`));
+			spinner.fail(`Domain name (${domainName}) must be at least ${domainNameMinLength} characters long.`);
 			return;
 		}
 
@@ -243,21 +247,29 @@ export const contentManager = async (token) => {
 		const response = await getDomainCall(token, domainName);
 
 		// If the domain doesn't exist, create it
-
 		if (!response) {
-			const spinner = ora("Creating domain...").start();
+			spinner.text = "Creating domain...";
+			// spinner.start();
 			await createDomainDecreetly(token, domainName);
 			spinner.succeed(`Domain ${domainName} created successfully`);
 		}
 
-		// Define the glob pattern for the files to be tracked
-		const filePattern = `${process.cwd()}/**/*.data.{yml,yaml}`;
+		// Get the content by content name
+		const result = await getContentsCall(token, domainName);
 
-		// Initialize the Chokidar watcher
-		const watcher = chokidar.watch(filePattern, {
-			ignored: /(^|[\\/])\../, // ignore dotfiles
-			persistent: true
-		});
+		for (const item of result) {
+			const { name, path, data } = item;
+
+			// Convert the data to YAML format
+			const yamlData = yaml.dump(data);
+
+			// Write the data to the file
+			await fs.writeFile(path, yamlData);
+
+			spinner.succeed(`Data file "${name}" successfully synchronized.`);
+		}
+
+		// spinner.succeed(`Watching for changes...`);
 
 		// Event listeners for file changes
 		watcher.on("add", (filePath) => handleFiles({ token, filePath, domainName }, createContent));
@@ -269,13 +281,21 @@ export const contentManager = async (token) => {
 		process.stdin.setEncoding("utf8");
 
 		process.stdin.on("data", (data) => {
-			const input = data.trim();
-			// handleFiles(input, ''); // Pass the input as the event and empty path
-			if (input === "exit") {
+			const input = data.toString().trim(); // Convert the input to a string and remove any trailing whitespace
+
+			if (input === "exit" || input === "quit") {
+				watcher.close();
+				// Perform synchronous operations before the process exits
+				removeDataFiles();
 				process.exit();
-			} else {
-				log(chalk.red(`Invalid input: ${input}. Use 'exit' to exit.`));
 			}
+		});
+
+		process.on("SIGINT", () => {
+			watcher.close();
+			// Perform synchronous operations before the process exits
+			removeDataFiles();
+			process.exit();
 		});
 	} catch (error) {
 		logError(chalk.red(`Error: ${error.message}`));
