@@ -34,27 +34,6 @@ export const checkTokenFile = () => {
 	}
 };
 
-// Spinner function
-// export const spinner = (action, options = {}) => {
-// 	const startMessage = options.startMessage || "Wait a moment...";
-// 	const endMessage = options.endMessage || `👍`;
-
-// 	const spin = ora(startMessage).start();
-
-// 	action();
-// 	spin.succeed(endMessage);
-// };
-
-// const loader = (next, token, options) => {
-// 	// const startMessage = ops.startMessage || "Wait a moment...";
-// 	// const endMessage = ops.endMessage || `👍`;
-
-// 	// const spinner = ora(startMessage).start();
-
-// 	next(token, options);
-// 	// spinner.succeed(endMessage);
-// };
-
 // Create a middleware function to check if the user is logged in, for authenticated operations
 export const auth = async (next, options = {}) => {
 	const token = await getToken();
@@ -100,20 +79,23 @@ export const isoDateParse = (isoDate) => {
  * Search for files matching a pattern and return an array of objects with the file name as key and the file path as value
  * @returns {Promise<Array>} Of object with file name as key and file path as value
  */
-const getDataFiles = async () => {
+export const getDataFiles = async () => {
 	const pattern = "**/*.data.{yml,yaml}"; // Pattern to match files
 
 	const fileNameRegex = /([^/]+)\.data\.(yml|yaml)$/; // Regex to extract the file name from the file path
 
 	const rawFiles = await glob(pattern, { ignore: "node_modules/**" }); // Get all files matching the pattern
 
+	const names = [];
+
 	// Create an array of objects with the file name as key and the file path as value
-	const filesObj = rawFiles.map((file) => {
+	const files = rawFiles.map((file) => {
 		const fileName = file.match(fileNameRegex)[1];
+		names.push(fileName);
 		return { [fileName]: file };
 	});
 
-	return filesObj;
+	return { files, names };
 };
 
 // Remove all data files from the project directory matching the pattern **/*.data.{yml,yaml}
@@ -132,7 +114,7 @@ export const removeDataFiles = () => {
  * @returns {Promise<Array<{name: string, data: any}>>} An array of objects containing the name and data of each .data.[yml|yaml] file.
  */
 export const dataFileContents = async () => {
-	const files = await getDataFiles();
+	const { files } = await getDataFiles();
 
 	const contents = [];
 
@@ -165,17 +147,39 @@ export const prepareData = async (filePath) => {
 		const relativePath = filePath.replace(process.cwd(), ".");
 
 		let data = {};
+		const media = {};
 
 		if (!fileContent) {
-			return { name, path: relativePath, data };
+			return { name, path: relativePath, data, media };
 		}
 
 		data = yaml.load(fileContent);
 
+		// Check through the data object and check if a property is type of object and has a property of it's own named "src"
+		// If it does, it means it's a media file and we need to read it and convert it to base64 string
+		for (const key in data) {
+			if (typeof data[key] === "object" && data[key].src) {
+				const fileLink = data[key].src;
+				const rootDir = process.cwd();
+				const filePath = path.join(rootDir, fileLink);
+				const buffer = await fs.readFile(filePath);
+				// Convert the buffer to Bass64 string
+				const base64 = buffer.toString("base64");
+
+				// Get the file extension
+				const ext = path.extname(filePath);
+
+				media[key] = {
+					src: base64,
+					ext
+				};
+			}
+		}
+
 		// Return content (in JS object format)
-		return { name, path: relativePath, data };
+		return { name, path: relativePath, data, media };
 	} catch (error) {
-		throw new Error("Error reading data file:", error.message);
+		throw new Error(`Error reading ${filePath}: ${error.message}`);
 	}
 };
 

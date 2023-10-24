@@ -5,7 +5,7 @@ import { fileURLToPath } from "url";
 import path from "path";
 import { program } from "commander";
 import { login, whoami, profile, logout } from "./action/user.js";
-import { raw, contentManager, getContent, getContents, syncData } from "./action/content.js";
+import { raw, contentManager, getContent, getContents } from "./action/content.js";
 import { checkTokenFile, auth, notAuth } from "./lib/index.js";
 import chalk from "chalk";
 
@@ -53,10 +53,13 @@ program
 	.alias("get-content")
 	.description(`Get a content by a content's name`)
 	.option("-n, --name <name>", "Get a content by content name")
+	// add option -m --more to get extra data like createdAt and updatedAt, default is false
+	.option("-m, --more", "Get more data like createdAt and updatedAt")
 	.action(async (options) => {
 		if (options.name) {
-			const option = options.name;
-			await auth(getContent, { option });
+			const name = options.name;
+			const more = options.more || false;
+			await auth(getContent, { name, more });
 		} else {
 			// Print to user: option -n <name> is required
 			console.log(chalk.yellowBright("Option -n <name> is required" + "\n"));
@@ -71,17 +74,11 @@ program
 	.command("getContents")
 	.alias("get-contents")
 	.description("Get all the contents under current domain")
-	.action(async () => {
-		await auth(getContents);
-	});
-
-// Sync data command (shanoom syncData or shanoom sync-data)
-program
-	.command("syncData")
-	.alias("sync-data")
-	.description("Sync data from the server to your local machine")
-	.action(async () => {
-		await auth(syncData);
+	// add option -m --more to get extra data like createdAt and updatedAt, default is false
+	.option("-m, --more", "Get more data like createdAt and updatedAt")
+	.action(async (options) => {
+		const more = options.more || false;
+		await auth(getContents, { more });
 	});
 
 // Content Manager command (shanoom contentManager)

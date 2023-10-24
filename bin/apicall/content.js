@@ -33,6 +33,18 @@ export const updateContentCall = async (token, domainName, contentName, data) =>
 };
 
 // Delete content for a domain
+// export const deleteContentCall = async (token, domainName, contentName, path) => {
+// 	try {
+// 		const response = await axios.delete(`${url}/${domainName}/${contentName}?path=${encodeURIComponent(path)}`, {
+// 			headers: { Authorization: `Bearer ${token}` }
+// 		});
+// 		return response.data;
+// 	} catch (error) {
+// 		throw new Error(error.response.data.message || error.message);
+// 	}
+// };
+
+// Delete content for a domain
 export const deleteContentCall = async (token, domainName, contentName) => {
 	try {
 		const response = await axios.delete(`${url}/${domainName}/${contentName}`, {
