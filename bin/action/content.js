@@ -86,8 +86,6 @@ export const createContent = async (token, filePath, domainName) => {
 			return;
 		}
 
-		console.log("content: ", content);
-
 		const { names } = await getDataFiles();
 
 		// Check if the content name appears more than once in names array
@@ -122,8 +120,6 @@ export const updateContent = async (token, filePath, domainName) => {
 	try {
 		// Get the content
 		const content = await prepareData(filePath);
-
-		console.log("content: ", content);
 
 		// Get the content hash from the database
 		const dbContent = await getContentCall(token, domainName, content.name);
@@ -328,8 +324,12 @@ export const contentManager = async (token) => {
 					return;
 				}
 
+				const fullFilePath = path.resolve(item.path);
+
+				const preparedData = await prepareData(fullFilePath);
+
 				// Create the content
-				const result = await createContentCall(token, domainName, item);
+				const result = await createContentCall(token, domainName, preparedData);
 
 				if (result && result !== "No changes") {
 					// Extract the relative file path by removing the cwd name
@@ -362,7 +362,7 @@ export const contentManager = async (token) => {
 				watcher.close();
 				// Perform synchronous operations before the process exits
 				removeDataFiles();
-				process.exit();
+				process.exit(0);
 			}
 		});
 
@@ -370,9 +370,11 @@ export const contentManager = async (token) => {
 			watcher.close();
 			// Perform synchronous operations before the process exits
 			removeDataFiles();
-			process.exit();
+			process.exit(0);
 		});
 	} catch (error) {
-		logError(chalk.red(`Error: ${error.message}`));
+		spinner.stop();
+		logError(chalk.red(error.message));
+		process.exit(1);
 	}
 };

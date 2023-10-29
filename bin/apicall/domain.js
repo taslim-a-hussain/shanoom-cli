@@ -10,7 +10,7 @@ export const createDomainCall = async (token, data) => {
 		});
 		return response.data;
 	} catch (error) {
-		throw new Error(error.response.data.message || error.message);
+		throw new Error(error);
 	}
 };
 
@@ -22,7 +22,7 @@ export const getDomainsCall = async (token) => {
 		});
 		return response.data;
 	} catch (error) {
-		throw new Error(error.response.data.message || error.message);
+		throw new Error(error);
 	}
 };
 
@@ -35,7 +35,7 @@ export const getDomainCall = async (token, domainName) => {
 
 		return response.data;
 	} catch (error) {
-		throw new Error(error.response.data.message || error.message);
+		throw new Error(error);
 	}
 };
 
@@ -47,7 +47,7 @@ export const updateDomainCall = async (token, domainName, data) => {
 		});
 		return response.data;
 	} catch (error) {
-		throw new Error(error.response.data.message || error.message);
+		throw new Error(error);
 	}
 };
 
@@ -59,7 +59,7 @@ export const deleteDomainCall = async (token, domainName) => {
 		});
 		return response.data;
 	} catch (error) {
-		throw new Error(error.response.data.message || error.message);
+		throw new Error(error);
 	}
 };
 
@@ -71,6 +71,6 @@ export const deleteDomainsCall = async (token) => {
 		});
 		return response.data;
 	} catch (error) {
-		throw new Error(error.response.data.message || error.message);
+		throw new Error(error);
 	}
 };
