@@ -54,6 +54,6 @@ export const makeAPICallWithRetries = async (method, spinner, token, endPoint, d
 			return makeAPICallWithRetries(method, spinner, token, endPoint, data, retries + 1);
 		}
 		spinner.fail("Max retries exceeded. Unable to connect to the internet.");
-		throw new Error(error);
+		throw new Error("Please check your internet connection and try again.");
 	}
 };
