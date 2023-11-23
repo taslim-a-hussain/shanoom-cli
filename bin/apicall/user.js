@@ -1,36 +1,21 @@
-import axios from "axios";
+import { makeAPICallWithRetries } from "../lib/util.js";
 
-const url = "http://localhost:4000/user";
+const resource = "user";
 
 // Login
 export const loginCall = async (pass) => {
-	try {
-		const response = await axios.post(`${url}/login`, pass);
-		return response.data;
-	} catch (error) {
-		throw new Error("Invalid username or password");
-	}
+	const url = `${resource}/login`;
+	return await makeAPICallWithRetries("post", "", url, pass);
 };
 
 // Get user (info)
 export const getUserCall = async (token) => {
-	try {
-		const response = await axios.get(`${url}`, {
-			headers: { Authorization: `Bearer ${token}` }
-		});
-		return response.data;
-	} catch (error) {
-		throw new Error(error.message);
-	}
+	const url = resource;
+	return await makeAPICallWithRetries("get", token, url);
 };
 
 // Logout
 export const logoutCall = async (token) => {
-	try {
-		const response = await axios.post(`${url}/logout`, {}, { headers: { Authorization: `Bearer ${token}` } });
-
-		return response.data;
-	} catch (error) {
-		throw new Error(error.message);
-	}
+	const url = `${resource}/logout`;
+	return await makeAPICallWithRetries("post", token, url);
 };

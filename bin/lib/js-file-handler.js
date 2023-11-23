@@ -96,3 +96,25 @@ export const readFile = async (filePath) => {
 	// Return content (in JS object format)
 	return { name, hash, data };
 };
+
+const makeAPICall = async (method, token, endPoint, data = {}) => {
+	try {
+		// Check for internet connection
+		if (!(await isOnline())) {
+			throw new Error("No internet connection");
+		}
+
+		const response = await axios({
+			method,
+			url: `${baseURL}/${endPoint}`,
+			data,
+			headers: {
+				Authorization: `Bearer ${token}`,
+				"Content-Type": "application/json"
+			}
+		});
+		return response.data;
+	} catch (error) {
+		throw new Error(error);
+	}
+};

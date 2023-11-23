@@ -4,6 +4,8 @@ import path from "path";
 import { glob } from "glob";
 import yaml from "js-yaml";
 import chokidar from "chokidar";
+import { hashContent } from "./content-hash.js";
+import chalk from "chalk";
 
 const shanoomrcPath = path.join(process.env.HOME, ".shanoomrc");
 
@@ -109,6 +111,17 @@ export const removeDataFiles = () => {
 	}
 };
 
+// Remove all data files from the project directory matching the pattern **/*.data.{yml,yaml} asynchronously
+export const removeDataFilesAsync = async () => {
+	const pattern = "**/*.data.{yml,yaml}";
+	const files = await glob(pattern, { ignore: "node_modules/**" });
+
+	// Delete all files
+	const deletePromises = files.map((file) => fs.unlink(file));
+
+	await Promise.all(deletePromises);
+};
+
 /**
  * Returns an array of objects containing the name and data of each file in the data directory.
  * @returns {Promise<Array<{name: string, data: any}>>} An array of objects containing the name and data of each .data.[yml|yaml] file.
@@ -163,6 +176,7 @@ export const prepareData = async (filePath) => {
 				const rootDir = process.cwd();
 				const filePath = path.join(rootDir, fileLink);
 				const buffer = await fs.readFile(filePath);
+				const propHash = hashContent(JSON.stringify(buffer));
 				// Convert the buffer to Bass64 string
 				const base64 = buffer.toString("base64");
 
@@ -171,7 +185,8 @@ export const prepareData = async (filePath) => {
 
 				media[key] = {
 					src: base64,
-					ext
+					ext,
+					propHash
 				};
 			}
 		}
@@ -179,7 +194,7 @@ export const prepareData = async (filePath) => {
 		// Return content (in JS object format)
 		return { name, path: relativePath, data, media };
 	} catch (error) {
-		throw new Error(`Error reading ${filePath}: ${error.message}`);
+		throw new Error(chalk.bgWhite(` ${error.message} `));
 	}
 };
 
