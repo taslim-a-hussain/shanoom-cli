@@ -3,7 +3,6 @@ import fsync from "fs";
 import path from "path";
 import { glob } from "glob";
 import yaml from "js-yaml";
-import chokidar from "chokidar";
 import { hashContent } from "./content-hash.js";
 import chalk from "chalk";
 
@@ -203,18 +202,4 @@ export const getCwdName = () => {
 	const cwd = process.cwd();
 	const cwdName = cwd.split(path.sep).pop();
 	return cwdName;
-};
-
-// Export watchman function
-export const watchman = () => {
-	// Define the glob pattern for the files to be tracked
-	const filePattern = `${process.cwd()}/**/*.data.{yml,yaml}`;
-
-	// Initialize the Chokidar watchman
-	const watchman = chokidar.watch(filePattern, {
-		ignored: /(^|[\\/])\../, // ignore dotfiles
-		persistent: true
-	});
-
-	return watchman;
 };

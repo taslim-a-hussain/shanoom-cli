@@ -5,7 +5,8 @@ import { fileURLToPath } from "url";
 import path from "path";
 import { program } from "commander";
 import { login, whoami, profile, logout } from "./action/user.js";
-import { raw, contentManager, getContent, getContents } from "./action/content.js";
+import { raw, getContent, getContents } from "./action/content.js";
+import contentManager from "./action/content-manager.js";
 import { checkTokenFile, auth, notAuth } from "./lib/index.js";
 import chalk from "chalk";
 
@@ -21,7 +22,7 @@ checkTokenFile();
 program.name(pkg.name).description(pkg.description).version(pkg.version, "-v, --version, -V", "output the current version");
 
 // Raw data command (shanoom raw) to view the raw data of the current directory
-program.command("raw").description("View the contents (from <filename>.data.shanoom.js) of the current directory").action(raw);
+program.command("raw").description("View the contents (from <filename>.data.[yml|yaml]) of the current directory").action(raw);
 
 // Login command
 program
