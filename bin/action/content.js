@@ -45,7 +45,7 @@ export const createContent = async (token, filePath, domainName, spinner) => {
 
 		return result;
 	} catch (error) {
-		throw new Error(`creating content - ${error}`);
+		throw new Error(error.message);
 	}
 };
 
@@ -58,7 +58,7 @@ export const updateContent = async (token, filePath, domainName, spinner) => {
 		// Update the content
 		return await updateContentCall(token, domainName, content.name, content, spinner);
 	} catch (error) {
-		throw new Error(`Updating content - ${error}`);
+		throw new Error(error.message);
 	}
 };
 
@@ -72,7 +72,7 @@ export const deleteContent = async (token, filePath, domainName, spinner) => {
 
 		return result;
 	} catch (error) {
-		throw new Error(`Deleting content - ${error.message}`);
+		throw new Error(error.message);
 	}
 };
 
@@ -140,6 +140,7 @@ export const getContent = async (token, options) => {
 
 		spinner.succeed(`Done!`);
 	} catch (error) {
+		console.log("helele");
 		console.logError(chalk.red(`Error: ${error.message}`));
 	}
 };
@@ -179,6 +180,7 @@ export const getContents = async (token, options) => {
 
 		spinner.succeed(`Total: ${contents.length} content(s)`);
 	} catch (error) {
+		console.log("hahaha!");
 		console.error(chalk.red(`Error: ${error.message}`));
 	}
 };

@@ -51,10 +51,11 @@ const contentManager = async (token) => {
 		// Event listeners for file changes
 		watcher.on("ready", async () => {
 			spinner.info("Ready for changes.");
+
 			// Now that the watcher is ready, you can call your content handling functions
-			watcher.on("add", (filePath) => handleFiles({ token, filePath, domainName, spinner, action: "Creating" }, createContent));
-			watcher.on("change", (filePath) => handleFiles({ token, filePath, domainName, spinner, action: "Updating" }, updateContent));
-			watcher.on("unlink", (filePath) => handleFiles({ token, filePath, domainName, spinner, action: "Deleting" }, deleteContent));
+			watcher.on("add", (filePath) => handleFiles({ token, filePath, domainName, spinner, watcher, action: "Creating" }, createContent));
+			watcher.on("change", (filePath) => handleFiles({ token, filePath, domainName, spinner, watcher, action: "Updating" }, updateContent));
+			watcher.on("unlink", (filePath) => handleFiles({ token, filePath, domainName, spinner, watcher, action: "Deleting" }, deleteContent));
 		});
 
 		process.on("SIGINT", () => handleSignal(watcher));

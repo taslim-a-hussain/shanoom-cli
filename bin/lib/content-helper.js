@@ -75,7 +75,7 @@ export const handleSignal = async (watcher) => {
 };
 
 export const handleFiles = async (args = {}, apiCallback) => {
-	const { token, filePath, domainName, spinner, action } = args;
+	const { token, filePath, domainName, spinner, watcher, action } = args;
 	try {
 		// Extract the relative file path by removing the cwd name
 		const relativePath = path.relative(process.cwd(), filePath);
@@ -94,7 +94,9 @@ export const handleFiles = async (args = {}, apiCallback) => {
 			spinner.stop();
 		}
 	} catch (error) {
-		spinner.fail(chalk.red(`Error: ${error.message}`));
+		spinner.fail(chalk.red(error.message));
+		spinner.stop();
+		handleSignal(watcher);
 	}
 };
 
