@@ -129,6 +129,7 @@ export const getContent = async (token, options) => {
 
 		// Get the content by content name
 		let content = await getContentCall(token, domainName, contentName, spinner);
+		spinner.succeed(`Done!`);
 
 		console.log(chalk.bgWhite.blueBright(" Content: ") + chalk.bgBlueBright.whiteBright(` ${content.name} `));
 
@@ -137,11 +138,9 @@ export const getContent = async (token, options) => {
 			console.log(chalk.whiteBright(` UpdatedAt: `) + isoDateParse(content.updatedAt));
 		}
 		console.log(content.data || "");
-
-		spinner.succeed(`Done!`);
 	} catch (error) {
-		console.log("helele");
 		console.logError(chalk.red(`Error: ${error.message}`));
+		spinner.stop();
 	}
 };
 
@@ -167,6 +166,8 @@ export const getContents = async (token, options) => {
 		// Get the content by content name
 		const contents = await getContentsCall(token, domainName, spinner);
 
+		spinner.succeed(`Total: ${contents.length} content(s)`);
+
 		// Loop through the contents and print contents.name and contents.data
 		for (const content of contents) {
 			console.log(chalk.bgWhite.blueBright(" Content: ") + chalk.bgBlueBright.whiteBright(` ${content.name} `));
@@ -177,10 +178,8 @@ export const getContents = async (token, options) => {
 			console.log(content.data || "");
 			console.log(chalk.green("=".repeat(80)) + "\n");
 		}
-
-		spinner.succeed(`Total: ${contents.length} content(s)`);
 	} catch (error) {
-		console.log("hahaha!");
 		console.error(chalk.red(`Error: ${error.message}`));
+		spinner.stop();
 	}
 };
