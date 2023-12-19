@@ -12,6 +12,12 @@
 	"scripts": {
 		"test": "mocha --recursive"
 	},
+	"files": [
+		"bin",
+		"node_modules",
+		"package.json",
+		"README.md"
+	],
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/taslim-a-hussain/shanoom-cli.git"

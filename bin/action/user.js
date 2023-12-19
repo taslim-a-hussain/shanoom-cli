@@ -15,15 +15,15 @@ export const login = () => {
 				type: "input",
 				name: "email",
 				message: "Email:",
-				validate: (input) => input.length > 0
+				validate: (input) => input.length > 0,
 			},
 			{
 				type: "password",
 				name: "password",
 				message: "Password:",
 				mask: "*",
-				validate: (input) => input.length > 0
-			}
+				validate: (input) => input.length > 0,
+			},
 		])
 		.then(async (answers) => {
 			const homedir = os.homedir();
@@ -32,7 +32,7 @@ export const login = () => {
 			const response = await loginCall(answers);
 
 			const config = {
-				token: response.token
+				token: response.token,
 			};
 
 			// Write the config to the .shanoomrc file

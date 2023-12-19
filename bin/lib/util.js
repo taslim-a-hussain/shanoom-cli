@@ -2,6 +2,7 @@ import axios from "axios";
 import isOnline from "is-online";
 import ora from "ora";
 import chokidar from "chokidar";
+import { deleteTokenFile } from "./index.js";
 
 const baseURL = "http://localhost:4000/";
 
@@ -18,13 +19,13 @@ export const watchman = () => {
 	// Initialize the Chokidar watchman
 	const watchman = chokidar.watch(filePattern, {
 		ignored: /(^|[\\/])\../, // ignore dotfiles
-		persistent: true
+		persistent: true,
 	});
 
 	return watchman;
 };
 
-export const makeAPICallWithRetries = async (method, spinner, token, endPoint, data = {}, retries = 0) => {
+export const makeAPICallWithRetries = async (method, spinner, token, endPoint, data = null, retries = 0) => {
 	try {
 		// Check for internet connection
 		if (!(await isOnline())) {
@@ -34,13 +35,16 @@ export const makeAPICallWithRetries = async (method, spinner, token, endPoint, d
 		const response = await axios({
 			method,
 			url: `${baseURL}${endPoint}`,
-			data,
+			// If data is present then add it to the request else ignore it
+			...(data && { data }),
 			headers: {
-				Authorization: `Bearer ${token}`,
-				"Content-Type": "application/json"
-			}
+				// If token then add it to the headers
+				...(token && { Authorization: `Bearer ${token}` }),
+				"Content-Type": "application/json",
+			},
 		});
 
+		spinner.stop();
 		return response.data;
 	} catch (error) {
 		// Retry logic for temporary network issues
@@ -52,6 +56,14 @@ export const makeAPICallWithRetries = async (method, spinner, token, endPoint, d
 				}, RETRY_DELAY_MS);
 			});
 			return makeAPICallWithRetries(method, spinner, token, endPoint, data, retries + 1);
+		}
+
+		// Check if status code is 401
+		if (error.response && error.response.status === 401) {
+			// Remove the .shanoomrc file
+			deleteTokenFile();
+			spinner.fail("Please login again.");
+			throw new Error("Unauthorized");
 		}
 
 		// if ECONNREFUSED, then the server is not running

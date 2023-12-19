@@ -2,7 +2,13 @@ import chalk from "chalk";
 import path from "path";
 import { spinner } from "../lib/util.js";
 import { getDomainCall } from "../apicall/domain.js";
-import { createContentCall, updateContentCall, deleteContentCall, getContentCall, getContentsCall } from "../apicall/content.js";
+import {
+	createContentCall,
+	updateContentCall,
+	deleteContentCall,
+	getContentCall,
+	getContentsCall,
+} from "../apicall/content.js";
 import { dataFileContents, prepareData, getCwdName, isoDateParse, getDataFiles } from "../lib/index.js";
 
 import colors from "../lib/colors.js";
@@ -79,8 +85,7 @@ export const deleteContent = async (token, filePath, domainName, spinner) => {
 // Raw Action
 export const raw = async () => {
 	try {
-		spinner.start();
-
+		spinner.start("Fetching data...");
 		const data = await dataFileContents();
 
 		const cwdName = getCwdName();
@@ -94,7 +99,7 @@ export const raw = async () => {
 			// log(JSON.stringify(item, null, 4) + "\n");
 
 			// Print out the content name
-			console.log(chalk.bgWhite.blueBright(" Content: ") + chalk.bgBlueBright.whiteBright(` ${item.name} `));
+			spinner.info(chalk.bgWhite.blueBright(" Content: ") + chalk.bgBlueBright.whiteBright(` ${item.name} `));
 
 			// Print out the data
 			console.log(item.data);
@@ -102,8 +107,8 @@ export const raw = async () => {
 			// Print a full horizental separator
 			console.log(chalk.green("=".repeat(80)) + "\n");
 		}
-		spinner.stop();
 	} catch (error) {
+		spinner.stop();
 		console.error(chalk.red(`Error: ${error.message}`));
 	}
 };
