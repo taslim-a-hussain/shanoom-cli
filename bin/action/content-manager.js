@@ -1,15 +1,7 @@
 import { spinner, watchman } from "../lib/util.js";
 import chalk from "chalk";
 import path from "path";
-import {
-	packageJsonExists,
-	validDomainName,
-	createDomainIfNotExists,
-	synchronizeDataFiles,
-	dataFileProcessor,
-	handleFiles,
-	handleSignal
-} from "../lib/content-helper.js";
+import { packageJsonExists, validDomainName, createDomainIfNotExists, synchronizeDataFiles, dataFileProcessor, handleFiles, handleSignal } from "../lib/content-helper.js";
 import { createContent, updateContent, deleteContent } from "./content.js";
 
 // Content Manager Action
@@ -18,7 +10,7 @@ const contentManager = async (token) => {
 		// Set the initial text for the spinner
 		spinner.start("Initializing...");
 
-		if (!(await packageJsonExists)) {
+		if (!packageJsonExists) {
 			spinner.info("Should run the command in the root directory of your project.");
 			spinner.fail("package.json does not exist in the current working directory");
 			return;

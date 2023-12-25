@@ -2,18 +2,13 @@ import chalk from "chalk";
 import path from "path";
 import { spinner } from "../lib/util.js";
 import { getDomainCall } from "../apicall/domain.js";
-import {
-	createContentCall,
-	updateContentCall,
-	deleteContentCall,
-	getContentCall,
-	getContentsCall,
-} from "../apicall/content.js";
+import { createContentCall, updateContentCall, deleteContentCall, getContentCall, getContentsCall } from "../apicall/content.js";
 import { dataFileContents, prepareData, getCwdName, isoDateParse, getDataFiles } from "../lib/index.js";
-
 import colors from "../lib/colors.js";
 
 const { bgBlueShade, bgYellowShade, blueShade, yellowShade } = colors;
+
+//
 
 // Create Content Action
 export const createContent = async (token, filePath, domainName, spinner) => {
@@ -42,8 +37,6 @@ export const createContent = async (token, filePath, domainName, spinner) => {
 
 			// Exit the process
 			process.exit(1); // 1 means error
-
-			return;
 		}
 
 		// Create the content
@@ -54,6 +47,8 @@ export const createContent = async (token, filePath, domainName, spinner) => {
 		throw new Error(error.message);
 	}
 };
+
+// ----------------------------------------------------------------------------------------------
 
 // Update Content Action (If content has changed since last update)
 export const updateContent = async (token, filePath, domainName, spinner) => {
@@ -68,6 +63,8 @@ export const updateContent = async (token, filePath, domainName, spinner) => {
 	}
 };
 
+// ----------------------------------------------------------------------------------------------
+
 export const deleteContent = async (token, filePath, domainName, spinner) => {
 	try {
 		// File name
@@ -81,6 +78,8 @@ export const deleteContent = async (token, filePath, domainName, spinner) => {
 		throw new Error(error.message);
 	}
 };
+
+// ----------------------------------------------------------------------------------------------
 
 // Raw Action
 export const raw = async () => {
@@ -112,6 +111,8 @@ export const raw = async () => {
 		console.error(chalk.red(`Error: ${error.message}`));
 	}
 };
+
+// ----------------------------------------------------------------------------------------------
 
 // Get Content Action
 export const getContent = async (token, options) => {
@@ -148,6 +149,8 @@ export const getContent = async (token, options) => {
 		spinner.stop();
 	}
 };
+
+// ----------------------------------------------------------------------------------------------
 
 // Get all Content Action
 export const getContents = async (token, options) => {
