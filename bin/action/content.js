@@ -8,7 +8,7 @@ import colors from "../lib/colors.js";
 
 const { bgBlueShade, bgYellowShade, blueShade, yellowShade } = colors;
 
-//
+// ----------------------------------------------------------------------------------------------
 
 // Create Content Action
 export const createContent = async (token, filePath, domainName, spinner) => {

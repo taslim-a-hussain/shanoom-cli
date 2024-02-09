@@ -165,6 +165,7 @@ export const prepareData = async (filePath) => {
 			return { name, path: relativePath, data, media };
 		}
 
+		// Parse the file content to a JS object
 		data = yaml.load(fileContent);
 
 		// Check through the data object and check if a property is type of object and has a property of it's own named "src"
@@ -185,7 +186,7 @@ export const prepareData = async (filePath) => {
 				media[key] = {
 					src: base64,
 					ext,
-					propHash
+					propHash,
 				};
 			}
 		}

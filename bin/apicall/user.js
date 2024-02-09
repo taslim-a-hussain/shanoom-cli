@@ -13,7 +13,7 @@ export const loginCall = async (pass) => {
 // Get user (info)
 export const getUserCall = async (token) => {
 	spinner.start("Getting user info...");
-	const url = resource;
+	const url = `${resource}/info`;
 	return await makeAPICallWithRetries("get", spinner, token, url);
 };
 

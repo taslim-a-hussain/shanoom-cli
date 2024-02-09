@@ -4,7 +4,7 @@ import ora from "ora";
 import chokidar from "chokidar";
 import { deleteTokenFile } from "./index.js";
 
-const baseURL = "http://localhost:4000/";
+const baseURL = "http://localhost:4000/api/v1/";
 
 const MAX_RETRIES = 20;
 const RETRY_DELAY_MS = 1000; // 1 second delay between retries
