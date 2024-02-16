@@ -24,7 +24,7 @@ export const createDomainDecreetly = async (token, domainName, spinner) => {
 
 		const data = {
 			name: ftrim(domainName).replace(/\s+/g, "-").toLowerCase(),
-			description
+			description,
 		};
 
 		return await createDomainCall(token, data, spinner);
@@ -66,7 +66,7 @@ export const handleSignal = async (watcher) => {
 	try {
 		watcher.close();
 		// Perform synchronous operations before the process exits
-		await removeDataFilesAsync();
+		// await removeDataFilesAsync();
 	} catch (error) {
 		console.error("Error during shutdown:", error);
 	} finally {
@@ -205,7 +205,8 @@ export const dataFileProcessor = async (token, domainName, spinner) => {
 				const relativePath = path.relative(process.cwd(), item.path);
 
 				if (result && result !== "No changes") {
-					const color = result === "Created" ? "greenBright" : result === "Updated" ? "yellowBright" : "redBright";
+					const color =
+						result === "Created" ? "greenBright" : result === "Updated" ? "yellowBright" : "redBright";
 
 					// Perform CRUD operations or any other actions based on the file change event
 					spinner.succeed(chalk[color].bold(`File: ${relativePath} has been ${result.toLowerCase()}.`));

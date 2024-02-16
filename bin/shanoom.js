@@ -5,7 +5,7 @@ import { fileURLToPath } from "url";
 import path from "path";
 import { program } from "commander";
 import { login, whoami, profile, logout } from "./action/user.js";
-import { raw, getContent, getContents } from "./action/content.js";
+import { raw, removeData, getContent, getContents } from "./action/content.js";
 import contentManager from "./action/content-manager.js";
 import { checkTokenFile, auth, notAuth } from "./lib/index.js";
 import chalk from "chalk";
@@ -19,10 +19,16 @@ const pkg = JSON.parse(packageJsonContent);
 checkTokenFile();
 
 // Package info and commands (shanoom)
-program.name(pkg.name).description(pkg.description).version(pkg.version, "-v, --version, -V", "output the current version");
+program
+	.name(pkg.name)
+	.description(pkg.description)
+	.version(pkg.version, "-v, --version, -V", "output the current version");
 
 // Raw data command (shanoom raw) to view the raw data of the current directory
-program.command("raw").description("View the contents (from <filename>.data.[yml|yaml]) of the current directory").action(raw);
+program
+	.command("raw")
+	.description("View the contents (from <filename>.data.[yml|yaml]) of the current directory")
+	.action(raw);
 
 // Login command
 program
@@ -48,10 +54,19 @@ program
 		await auth(profile);
 	});
 
+// Remove all data files command (shanoom removeDataFiles or shanoom remove-data-files)
+program
+	.command("removeDataFiles")
+	.alias("rmdf")
+	.description("Remove all the data files under the current domain")
+	.action(async () => {
+		await auth(removeData);
+	});
+
 // Get content command (shanoom getContent or shanoom get-content)
 program
 	.command("getContent")
-	.alias("get-content")
+	.alias("gc")
 	.description(`Get a content by a content's name`)
 	.option("-n, --name <name>", "Get a content by content name")
 	// add option -m --more to get extra data like createdAt and updatedAt, default is false
@@ -73,7 +88,7 @@ program
 // Get all content command (shanoom getContents or shanoom get-contents)
 program
 	.command("getContents")
-	.alias("get-contents")
+	.alias("gcs")
 	.description("Get all the contents under current domain")
 	// add option -m --more to get extra data like createdAt and updatedAt, default is false
 	.option("-m, --more", "Get more data like createdAt and updatedAt")

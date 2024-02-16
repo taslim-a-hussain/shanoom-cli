@@ -1,7 +1,15 @@
 import { spinner, watchman } from "../lib/util.js";
 import chalk from "chalk";
 import path from "path";
-import { packageJsonExists, validDomainName, createDomainIfNotExists, synchronizeDataFiles, dataFileProcessor, handleFiles, handleSignal } from "../lib/content-helper.js";
+import {
+	packageJsonExists,
+	validDomainName,
+	createDomainIfNotExists,
+	synchronizeDataFiles,
+	dataFileProcessor,
+	handleFiles,
+	handleSignal,
+} from "../lib/content-helper.js";
 import { createContent, updateContent, deleteContent } from "./content.js";
 
 // Content Manager Action
@@ -45,9 +53,15 @@ const contentManager = async (token) => {
 			spinner.info("Ready for changes.");
 
 			// Now that the watcher is ready, you can call your content handling functions
-			watcher.on("add", (filePath) => handleFiles({ token, filePath, domainName, spinner, watcher, action: "Creating" }, createContent));
-			watcher.on("change", (filePath) => handleFiles({ token, filePath, domainName, spinner, watcher, action: "Updating" }, updateContent));
-			watcher.on("unlink", (filePath) => handleFiles({ token, filePath, domainName, spinner, watcher, action: "Deleting" }, deleteContent));
+			watcher.on("add", (filePath) =>
+				handleFiles({ token, filePath, domainName, spinner, watcher, action: "Creating" }, createContent)
+			);
+			watcher.on("change", (filePath) =>
+				handleFiles({ token, filePath, domainName, spinner, watcher, action: "Updating" }, updateContent)
+			);
+			watcher.on("unlink", (filePath) =>
+				handleFiles({ token, filePath, domainName, spinner, watcher, action: "Deleting" }, deleteContent)
+			);
 		});
 
 		process.on("SIGINT", () => handleSignal(watcher));

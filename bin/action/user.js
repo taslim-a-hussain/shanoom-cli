@@ -41,7 +41,7 @@ export const login = () => {
 			console.log(chalk.green(`Logged in successfully`));
 		})
 		.catch((error) => {
-			console.error(chalk.red(`Error: ${error.message}`));
+			console.error(chalk.red(`- ${error.message}`));
 		});
 };
 
@@ -49,9 +49,12 @@ export const login = () => {
 export const whoami = async (token) => {
 	try {
 		const response = await getUserCall(token);
-		console.log(chalk.bgWhite.blueBright(" Logged in as: ") + chalk.bgBlueBright.whiteBright(` ${response.name} (${response.email}) `));
+		console.log(
+			chalk.bgWhite.blueBright(" Logged in as: ") +
+				chalk.bgBlueBright.whiteBright(` ${response.name} (${response.email}) `)
+		);
 	} catch (error) {
-		console.error(chalk.red(`Error: ${error.message}`));
+		console.error(chalk.red(`- ${error.message}`));
 	}
 };
 

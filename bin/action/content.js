@@ -2,8 +2,15 @@ import chalk from "chalk";
 import path from "path";
 import { spinner } from "../lib/util.js";
 import { getDomainCall } from "../apicall/domain.js";
-import { createContentCall, updateContentCall, deleteContentCall, getContentCall, getContentsCall } from "../apicall/content.js";
+import {
+	createContentCall,
+	updateContentCall,
+	deleteContentCall,
+	getContentCall,
+	getContentsCall,
+} from "../apicall/content.js";
 import { dataFileContents, prepareData, getCwdName, isoDateParse, getDataFiles } from "../lib/index.js";
+import { removeDataFilesAsync } from "../lib/index.js";
 import colors from "../lib/colors.js";
 
 const { bgBlueShade, bgYellowShade, blueShade, yellowShade } = colors;
@@ -106,6 +113,22 @@ export const raw = async () => {
 			// Print a full horizental separator
 			console.log(chalk.green("=".repeat(80)) + "\n");
 		}
+	} catch (error) {
+		spinner.stop();
+		console.error(chalk.red(`Error: ${error.message}`));
+	}
+};
+
+// ----------------------------------------------------------------------------------------------
+
+// Remove data files (shanoom removeData)
+export const removeData = async () => {
+	try {
+		spinner.start("Removing data files...");
+
+		await removeDataFilesAsync();
+
+		spinner.succeed("Data files successfully removed.");
 	} catch (error) {
 		spinner.stop();
 		console.error(chalk.red(`Error: ${error.message}`));

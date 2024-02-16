@@ -45,6 +45,7 @@ export const makeAPICallWithRetries = async (method, spinner, token, endPoint, d
 		});
 
 		spinner.stop();
+
 		return response.data;
 	} catch (error) {
 		// Retry logic for temporary network issues
@@ -58,12 +59,18 @@ export const makeAPICallWithRetries = async (method, spinner, token, endPoint, d
 			return makeAPICallWithRetries(method, spinner, token, endPoint, data, retries + 1);
 		}
 
-		// Check if status code is 401
+		// Check if status code is 401 (Unauthorized)
 		if (error.response && error.response.status === 401) {
 			// Remove the .shanoomrc file
 			deleteTokenFile();
-			spinner.fail("Please login again.");
+			spinner.fail("Please login to continue.");
 			throw new Error("Unauthorized");
+		}
+
+		// Check if status code is 400 (Bad Request)
+		if (error.response && error.response.status === 400) {
+			spinner.fail(error.response.data.message);
+			throw new Error(error.response.data.error);
 		}
 
 		// if ECONNREFUSED, then the server is not running
@@ -75,4 +82,19 @@ export const makeAPICallWithRetries = async (method, spinner, token, endPoint, d
 		spinner.fail("Max retries exceeded. Unable to connect to the internet.");
 		throw new Error("Please check your internet connection and try again.");
 	}
+};
+
+export const getSrcs = (obj) => {
+	let srcs = [];
+	const iterate = (obj) => {
+		for (let key in obj) {
+			if (typeof obj[key] === "object") {
+				iterate(obj[key]);
+			} else if (key === "src") {
+				srcs.push(obj[key]);
+			}
+		}
+	};
+	iterate(obj);
+	return [...new Set(srcs)];
 };

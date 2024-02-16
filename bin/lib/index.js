@@ -5,6 +5,7 @@ import { glob } from "glob";
 import yaml from "js-yaml";
 import { hashContent } from "./content-hash.js";
 import chalk from "chalk";
+import { getSrcs } from "./util.js";
 
 const shanoomrcPath = path.join(process.env.HOME, ".shanoomrc");
 
@@ -17,6 +18,8 @@ export const getToken = async () => {
 		throw new Error("Error reading .shanoomrc file:", error.message);
 	}
 };
+
+// yaml.
 
 // Delete the .shanoomrc file
 export const deleteTokenFile = () => {
@@ -137,6 +140,7 @@ export const dataFileContents = async () => {
 
 		// Read the file content
 		const fileContent = await fs.readFile(path.resolve(filePath), "utf8");
+		// Parse the file content to a JS object
 		const data = yaml.load(fileContent);
 
 		contents.push({ name: fileName, path: filePath, data });
@@ -159,7 +163,7 @@ export const prepareData = async (filePath) => {
 		const relativePath = filePath.replace(process.cwd(), ".");
 
 		let data = {};
-		const media = {};
+		const media = [];
 
 		if (!fileContent) {
 			return { name, path: relativePath, data, media };
@@ -168,26 +172,35 @@ export const prepareData = async (filePath) => {
 		// Parse the file content to a JS object
 		data = yaml.load(fileContent);
 
-		// Check through the data object and check if a property is type of object and has a property of it's own named "src"
-		// If it does, it means it's a media file and we need to read it and convert it to base64 string
-		for (const key in data) {
-			if (typeof data[key] === "object" && data[key].src) {
-				const fileLink = data[key].src;
+		const srcs = getSrcs(data);
+
+		// If srcs is not empty, it means there are media files in the data file
+		if (srcs.length > 0) {
+			// Loop through the srcs array and read the media files
+			for (let src of srcs) {
+				// file link is starting with /, remove it (/ is not needed)
+				src = src.startsWith("/") ? src.slice(1) : src;
+
+				// Check if fileLink is a valid file path
+				if (!fsync.existsSync(src)) {
+					throw new Error(`File not found: ${src} in the ${relativePath} file.`);
+				}
+
 				const rootDir = process.cwd();
-				const filePath = path.join(rootDir, fileLink);
+				const filePath = path.join(rootDir, src);
 				const buffer = await fs.readFile(filePath);
 				const propHash = hashContent(JSON.stringify(buffer));
 				// Convert the buffer to Bass64 string
 				const base64 = buffer.toString("base64");
-
 				// Get the file extension
 				const ext = path.extname(filePath);
 
-				media[key] = {
+				media.push({
+					path: src,
 					src: base64,
 					ext,
 					propHash,
-				};
+				});
 			}
 		}
 

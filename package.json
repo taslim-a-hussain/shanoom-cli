@@ -10,7 +10,10 @@
 		"shanoom": "./bin/shanoom.js"
 	},
 	"scripts": {
-		"test": "mocha --recursive"
+		"test": "mocha --recursive",
+		"lint": "eslint .",
+		"fix": "eslint . --fix",
+		"eslint-help": "eslint --help"
 	},
 	"files": [
 		"bin",
