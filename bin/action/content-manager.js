@@ -18,7 +18,10 @@ const contentManager = async (token) => {
 		// Set the initial text for the spinner
 		spinner.start("Initializing...");
 
-		if (!packageJsonExists) {
+		// Check if package.json exists
+		const packageJsonPresent = await packageJsonExists();
+
+		if (!packageJsonPresent) {
 			spinner.info("Should run the command in the root directory of your project.");
 			spinner.fail("package.json does not exist in the current working directory");
 			return;
@@ -68,7 +71,7 @@ const contentManager = async (token) => {
 		process.on("SIGTERM", () => handleSignal(watcher));
 	} catch (error) {
 		spinner.stop();
-		console.error(chalk.red(error.message));
+		console.error(chalk.red(`- ${error.message}`));
 		process.exit(1);
 	}
 };

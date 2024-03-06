@@ -3,9 +3,8 @@ import fsync from "fs";
 import path from "path";
 import { glob } from "glob";
 import yaml from "js-yaml";
-import { hashContent } from "./content-hash.js";
 import chalk from "chalk";
-import { getSrcs } from "./util.js";
+import { processMedia } from "../utils/content.js";
 
 const shanoomrcPath = path.join(process.env.HOME, ".shanoomrc");
 
@@ -18,8 +17,6 @@ export const getToken = async () => {
 		throw new Error("Error reading .shanoomrc file:", error.message);
 	}
 };
-
-// yaml.
 
 // Delete the .shanoomrc file
 export const deleteTokenFile = () => {
@@ -129,7 +126,15 @@ export const removeDataFilesAsync = async () => {
  * @returns {Promise<Array<{name: string, data: any}>>} An array of objects containing the name and data of each .data.[yml|yaml] file.
  */
 export const dataFileContents = async () => {
-	const { files } = await getDataFiles();
+	const { files, names } = await getDataFiles();
+
+	// Check if same name appears more than once in the names array
+	for (const name of names) {
+		const nameExists = names.filter((n) => n === name).length > 1;
+		if (nameExists) {
+			throw new Error(`Duplicate data file name "${name}" found.`);
+		}
+	}
 
 	const contents = [];
 
@@ -139,7 +144,11 @@ export const dataFileContents = async () => {
 		const filePath = Object.values(file)[0];
 
 		// Read the file content
-		const fileContent = await fs.readFile(path.resolve(filePath), "utf8");
+		let fileContent = await fs.readFile(path.resolve(filePath), "utf8");
+
+		// trim the file content
+		fileContent = fileContent.trim();
+
 		// Parse the file content to a JS object
 		const data = yaml.load(fileContent);
 
@@ -149,65 +158,36 @@ export const dataFileContents = async () => {
 	return contents;
 };
 
-export const prepareData = async (filePath) => {
+export const prepareDataFile = async (fileInfo) => {
 	try {
-		let fileContent = await fs.readFile(filePath, "utf8");
+		const { relative, full, name } = fileInfo;
+		// Read the file content
+		let fileContent = await fs.readFile(full, "utf8");
 
 		// trim the file content
 		fileContent = fileContent.trim();
 
-		// Get the file name
-		const name = path.basename(filePath, path.extname(filePath)).split(".")[0];
-
-		// Get relative file path from passed filePath
-		const relativePath = filePath.replace(process.cwd(), ".");
-
-		let data = {};
-		const media = [];
-
-		if (!fileContent) {
-			return { name, path: relativePath, data, media };
-		}
-
 		// Parse the file content to a JS object
-		data = yaml.load(fileContent);
+		const data = yaml.load(fileContent);
 
-		const srcs = getSrcs(data);
-
-		// If srcs is not empty, it means there are media files in the data file
-		if (srcs.length > 0) {
-			// Loop through the srcs array and read the media files
-			for (let src of srcs) {
-				// file link is starting with /, remove it (/ is not needed)
-				src = src.startsWith("/") ? src.slice(1) : src;
-
-				// Check if fileLink is a valid file path
-				if (!fsync.existsSync(src)) {
-					throw new Error(`File not found: ${src} in the ${relativePath} file.`);
-				}
-
-				const rootDir = process.cwd();
-				const filePath = path.join(rootDir, src);
-				const buffer = await fs.readFile(filePath);
-				const propHash = hashContent(JSON.stringify(buffer));
-				// Convert the buffer to Bass64 string
-				const base64 = buffer.toString("base64");
-				// Get the file extension
-				const ext = path.extname(filePath);
-
-				media.push({
-					path: src,
-					src: base64,
-					ext,
-					propHash,
-				});
-			}
-		}
-
-		// Return content (in JS object format)
-		return { name, path: relativePath, data, media };
+		// Process media
+		const contents = await processMedia([{ name, path: relative, data }]);
+		return contents[0];
 	} catch (error) {
-		throw new Error(chalk.bgWhite(` ${error.message} `));
+		throw new Error(error.message);
+	}
+};
+
+export const prepareAllDataFiles = async () => {
+	try {
+		let contents = await dataFileContents();
+
+		// Process media
+		contents = await processMedia(contents);
+
+		return contents;
+	} catch (error) {
+		throw new Error(chalk.bgWhite(chalk.red(` ${error.message} `)));
 	}
 };
 

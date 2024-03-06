@@ -3,7 +3,7 @@ import yaml from "js-yaml";
 import path from "path";
 import { getDomainCall, createDomainCall } from "../apicall/domain.js";
 import { createContentCall, getContentsCall } from "../apicall/content.js";
-import { dataFileContents, prepareData, removeDataFilesAsync, getDataFiles } from "../lib/index.js";
+import { prepareAllDataFiles, removeDataFilesAsync } from "../lib/index.js";
 import { ftrim } from "gokit";
 import chalk from "chalk";
 
@@ -80,15 +80,23 @@ export const handleFiles = async (args = {}, apiCallback) => {
 		// Extract the relative file path by removing the cwd name
 		const relativePath = path.relative(process.cwd(), filePath);
 
+		// File name
+		const name = path.basename(filePath, path.extname(filePath)).split(".")[0];
+
 		spinner.start(`${action}... file: ${relativePath}`);
 
-		const result = await apiCallback(token, filePath, domainName, spinner);
+		const result = await apiCallback(token, { relative: relativePath, full: filePath, name }, domainName, spinner);
 
-		if (result && result !== "No changes") {
-			const color = result === "Created" ? "greenBright" : result === "Updated" ? "yellowBright" : "redBright";
+		if (result?.action !== "No changes") {
+			const color =
+				result.action === "Created"
+					? "greenBright"
+					: result.action === "Updated"
+					? "yellowBright"
+					: "redBright";
 
 			// Perform CRUD operations or any other actions based on the file change event
-			spinner.succeed(chalk[color].bold(`File: ${relativePath} has been ${result.toLowerCase()}.`));
+			spinner.succeed(chalk[color].bold(`File: ${relativePath} has been ${result.action.toLowerCase()}.`));
 		} else {
 			// Stop the spinner
 			spinner.stop();
@@ -170,50 +178,34 @@ export const synchronizeDataFiles = async (token, domainName, spinner) => {
 
 export const dataFileProcessor = async (token, domainName, spinner) => {
 	try {
-		// Get the data files contents
-		const newContents = await dataFileContents();
+		spinner.start("Processing data files...");
 
-		if (newContents.length) {
-			const { names } = await getDataFiles();
+		const promises = [];
+		const contents = await prepareAllDataFiles();
 
-			// Loop through the newContents array and create the contents in the database
-			for (const item of newContents) {
-				// Check if the content name appears more than once in names array
-				const nameExists = names.filter((name) => name === item.name).length > 1;
+		for (const content of contents) {
+			spinner.text = `Processing ${content.name}...`;
 
-				if (nameExists) {
-					const name = chalk.redBright(item.name);
-					spinner.fail(`Duplicate data file name "${name}" found.`);
-					spinner.info(`Data file name must be unique within a project.`);
-					spinner.info(`To fix this issue:`);
-					spinner.info(`1. Rename the file "${item.path}" to a unique name.`);
-					spinner.info(`2. Run ${chalk.yellowBright("shanoom watch")} again.`);
-					spinner.stop();
-					process.exit(0);
-				}
+			promises.push(createContentCall(token, domainName, content, spinner));
+		}
 
-				spinner.start(`Creating content "${item.name}"...`);
+		spinner.text = "Processing data files...";
 
-				const fullFilePath = path.resolve(item.path);
+		const result = await Promise.all(promises);
 
-				const preparedData = await prepareData(fullFilePath);
-
-				// Create the content
-				const result = await createContentCall(token, domainName, preparedData, spinner);
-
-				// Extract the relative file path by removing the cwd name
-				const relativePath = path.relative(process.cwd(), item.path);
-
-				if (result && result !== "No changes") {
-					const color =
-						result === "Created" ? "greenBright" : result === "Updated" ? "yellowBright" : "redBright";
-
-					// Perform CRUD operations or any other actions based on the file change event
-					spinner.succeed(chalk[color].bold(`File: ${relativePath} has been ${result.toLowerCase()}.`));
-				}
+		// Log the result
+		for (const res of result) {
+			if (res.action && res.action !== "No changes") {
+				const color =
+					res.action === "Created" ? "greenBright" : res.action === "Updated" ? "yellowBright" : "redBright";
+				spinner.succeed(
+					chalk[color].bold(
+						`File: ${res.path} has been ${res.action.toLowerCase()}. Content name: ${res.name}.`
+					)
+				);
 			}
 		}
 	} catch (error) {
-		throw new Error(error);
+		throw new Error(error.message);
 	}
 };

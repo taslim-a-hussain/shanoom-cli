@@ -9,8 +9,14 @@ import {
 	getContentCall,
 	getContentsCall,
 } from "../apicall/content.js";
-import { dataFileContents, prepareData, getCwdName, isoDateParse, getDataFiles } from "../lib/index.js";
-import { removeDataFilesAsync } from "../lib/index.js";
+import {
+	dataFileContents,
+	getCwdName,
+	isoDateParse,
+	getDataFiles,
+	removeDataFilesAsync,
+	prepareDataFile,
+} from "../lib/index.js";
 import colors from "../lib/colors.js";
 
 const { bgBlueShade, bgYellowShade, blueShade, yellowShade } = colors;
@@ -18,10 +24,10 @@ const { bgBlueShade, bgYellowShade, blueShade, yellowShade } = colors;
 // ----------------------------------------------------------------------------------------------
 
 // Create Content Action
-export const createContent = async (token, filePath, domainName, spinner) => {
+export const createContent = async (token, fileInfo, domainName, spinner) => {
 	try {
 		// Get the content
-		const content = await prepareData(filePath);
+		const content = await prepareDataFile(fileInfo);
 
 		// If not content (Because of an error thrown by the readFile function), return
 		if (!content) {
@@ -47,9 +53,7 @@ export const createContent = async (token, filePath, domainName, spinner) => {
 		}
 
 		// Create the content
-		const result = await createContentCall(token, domainName, content, spinner);
-
-		return result;
+		return await createContentCall(token, domainName, content, spinner);
 	} catch (error) {
 		throw new Error(error.message);
 	}
@@ -58,10 +62,10 @@ export const createContent = async (token, filePath, domainName, spinner) => {
 // ----------------------------------------------------------------------------------------------
 
 // Update Content Action (If content has changed since last update)
-export const updateContent = async (token, filePath, domainName, spinner) => {
+export const updateContent = async (token, fileInfo, domainName, spinner) => {
 	try {
 		// Get the content
-		const content = await prepareData(filePath);
+		const content = await prepareDataFile(fileInfo);
 
 		// Update the content
 		return await updateContentCall(token, domainName, content.name, content, spinner);
@@ -72,13 +76,10 @@ export const updateContent = async (token, filePath, domainName, spinner) => {
 
 // ----------------------------------------------------------------------------------------------
 
-export const deleteContent = async (token, filePath, domainName, spinner) => {
+export const deleteContent = async (token, { name }, domainName, spinner) => {
 	try {
-		// File name
-		const contentName = path.basename(filePath, path.extname(filePath)).split(".")[0];
-
 		// Update the content
-		const result = await deleteContentCall(token, domainName, contentName, spinner);
+		const result = await deleteContentCall(token, domainName, name, spinner);
 
 		return result;
 	} catch (error) {
@@ -108,10 +109,10 @@ export const raw = async () => {
 			spinner.info(chalk.bgWhite.blueBright(" Content: ") + chalk.bgBlueBright.whiteBright(` ${item.name} `));
 
 			// Print out the data
-			console.log(item.data);
+			console.log(JSON.stringify(item.data, null, 4));
 
 			// Print a full horizental separator
-			console.log(chalk.green("=".repeat(80)) + "\n");
+			console.log("=".repeat(80) + "\n");
 		}
 	} catch (error) {
 		spinner.stop();
@@ -163,10 +164,10 @@ export const getContent = async (token, options) => {
 		console.log(chalk.bgWhite.blueBright(" Content: ") + chalk.bgBlueBright.whiteBright(` ${content.name} `));
 
 		if (more) {
-			console.log(chalk.whiteBright(` CreatedAt: `) + isoDateParse(content.createdAt));
-			console.log(chalk.whiteBright(` UpdatedAt: `) + isoDateParse(content.updatedAt));
+			console.log(` CreatedAt: ` + isoDateParse(content.createdAt));
+			console.log(` UpdatedAt: ` + isoDateParse(content.updatedAt));
 		}
-		console.log(content.data || "");
+		console.log(JSON.stringify(content.data, null, 4) || "");
 	} catch (error) {
 		console.logError(chalk.red(`Error: ${error.message}`));
 		spinner.stop();
@@ -184,7 +185,7 @@ export const getContents = async (token, options) => {
 		const domainName = path.basename(process.cwd());
 
 		// Check if domain exists in the database
-		const domainExist = await getDomainCall(token, domainName);
+		const domainExist = await getDomainCall(token, domainName, spinner);
 
 		if (!domainExist) {
 			spinner.fail(`Domain ${domainName} does not exist.`);
@@ -203,11 +204,11 @@ export const getContents = async (token, options) => {
 		for (const content of contents) {
 			console.log(chalk.bgWhite.blueBright(" Content: ") + chalk.bgBlueBright.whiteBright(` ${content.name} `));
 			if (more) {
-				console.log(chalk.whiteBright(` CreatedAt: `) + isoDateParse(content.createdAt));
-				console.log(chalk.whiteBright(` UpdatedAt: `) + isoDateParse(content.updatedAt));
+				console.log(` CreatedAt: ` + isoDateParse(content.createdAt));
+				console.log(` UpdatedAt: ` + isoDateParse(content.updatedAt));
 			}
-			console.log(content.data || "");
-			console.log(chalk.green("=".repeat(80)) + "\n");
+			console.log(JSON.stringify(content.data, null, 4) || "");
+			console.log(blueShade("=".repeat(80)) + "\n");
 		}
 	} catch (error) {
 		console.error(chalk.red(`Error: ${error.message}`));

@@ -79,22 +79,14 @@ export const makeAPICallWithRetries = async (method, spinner, token, endPoint, d
 			throw new Error("Please try again later.");
 		}
 
+		// If 500 or 503 error, then the server is down
+		if (error.response && (error.response.status === 500 || error.response.status === 503)) {
+			spinner.fail("Server is down.");
+			throw new Error("Internal server error. Please try again later.");
+		}
+
 		spinner.fail("Max retries exceeded. Unable to connect to the internet.");
+		console.log(error);
 		throw new Error("Please check your internet connection and try again.");
 	}
-};
-
-export const getSrcs = (obj) => {
-	let srcs = [];
-	const iterate = (obj) => {
-		for (let key in obj) {
-			if (typeof obj[key] === "object") {
-				iterate(obj[key]);
-			} else if (key === "src") {
-				srcs.push(obj[key]);
-			}
-		}
-	};
-	iterate(obj);
-	return [...new Set(srcs)];
 };
