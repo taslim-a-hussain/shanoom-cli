@@ -28,6 +28,6 @@ export const getContentCall = async (token, domainName, contentName, spinner) =>
 
 // Get all content for a domain (By domain name)
 export const getContentsCall = async (token, domainName, spinner) => {
-	const url = `${resource}/list/${domainName}`;
+	const url = `${resource}/cli/list/${domainName}`;
 	return await makeAPICallWithRetries("get", spinner, token, url);
 };

@@ -1,5 +1,4 @@
 import fs from "fs/promises";
-import yaml from "js-yaml";
 import path from "path";
 import { getDomainCall, createDomainCall } from "../apicall/domain.js";
 import { createContentCall, getContentsCall } from "../apicall/content.js";
@@ -152,27 +151,24 @@ export const synchronizeDataFiles = async (token, domainName, spinner) => {
 
 		const result = await getContentsCall(token, domainName, spinner);
 
-		// If there are no data files, return
 		if (!result.length) {
 			spinner.stop();
 			return;
 		}
 
-		const writePromises = result.map(async (item) => {
-			const { path, data } = item;
+		const writePromises = result.map((item) => {
+			const { path, clidata } = item;
 
-			// Convert the data to YAML format
-			const yamlData = yaml.dump(data);
+			const content = Buffer.from(clidata, "utf-16le").toString("utf-8");
 
-			// Write the data to the file
-			await fs.writeFile(path, yamlData);
+			fs.writeFile(path, content);
 		});
 
 		await Promise.all(writePromises);
 
 		spinner.succeed(`Data files successfully synchronized.`);
 	} catch (error) {
-		throw new Error(error.message);
+		throw new Error(error);
 	}
 };
 
