@@ -5,8 +5,9 @@ import { fileURLToPath } from "url";
 import path from "path";
 import { program } from "commander";
 import { login, whoami, profile, logout } from "./action/user.js";
-import { raw, removeData, getContent, getContents } from "./action/content.js";
+import { raw, removeData, getContent, getContents, getDataFilesFromDB, deleteAllContent } from "./action/content.js";
 import contentManager from "./action/content-manager.js";
+import run from "./action/run-command.js";
 import { checkTokenFile, auth, notAuth } from "./lib/index.js";
 import chalk from "chalk";
 
@@ -46,6 +47,14 @@ program
 		await auth(whoami);
 	});
 
+// Run command (shanoom run)
+program
+	.command("run")
+	.description("Will update, delete, and create content into your account")
+	.action(async () => {
+		await auth(run);
+	});
+
 // Profile command
 program
 	.command("profile")
@@ -54,13 +63,31 @@ program
 		await auth(profile);
 	});
 
-// Remove all data files command (shanoom removeDataFiles or shanoom remove-data-files)
+// Removes all data files command (shanoom removeDataFiles or shanoom rdf)
 program
 	.command("removeDataFiles")
-	.alias("rmdf")
-	.description("Remove all the data files under the current domain")
+	.alias("rdf")
+	.description("Removes all the data files under the current domain only and not from the database.")
 	.action(async () => {
 		await auth(removeData);
+	});
+
+// Get all data files command (shanoom getDataFiles or shanoom gdf)
+program
+	.command("getDataFiles")
+	.alias("gdf")
+	.description("Get all the data files under the current domain")
+	.action(async () => {
+		await auth(getDataFilesFromDB);
+	});
+
+// Delete all content command (shanoom deleteAllContent or shanoom dac)
+program
+	.command("deleteAllContent")
+	.alias("dac")
+	.description("Delete all the content under the current domain")
+	.action(async () => {
+		await auth(deleteAllContent);
 	});
 
 // Get content command (shanoom getContent or shanoom get-content)

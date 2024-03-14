@@ -145,16 +145,20 @@ export const createDomainIfNotExists = async (token, domainName, spinner) => {
 	}
 };
 
-export const synchronizeDataFiles = async (token, domainName, spinner) => {
+export const synchronizeDataFiles = async (token, domainName, spinner, onhand = false) => {
 	try {
-		spinner.text = "Synchronizing data files...";
-
 		const result = await getContentsCall(token, domainName, spinner);
 
-		if (!result.length) {
-			spinner.stop();
+		// If the result is empty, return
+		if (!result) {
 			return;
 		}
+
+		if (onhand && result.length === onhand.length) {
+			return;
+		}
+
+		spinner.text = "Synchronizing data files...";
 
 		const writePromises = result.map((item) => {
 			const { path, clidata } = item;
@@ -201,6 +205,8 @@ export const dataFileProcessor = async (token, domainName, spinner) => {
 				);
 			}
 		}
+
+		return contents;
 	} catch (error) {
 		throw new Error(error.message);
 	}

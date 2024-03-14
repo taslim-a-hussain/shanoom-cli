@@ -20,6 +20,12 @@ export const deleteContentCall = async (token, domainName, contentName, spinner)
 	return await makeAPICallWithRetries("delete", spinner, token, url);
 };
 
+// Delete all content for a domain
+export const deleteAllContentCall = async (token, domainName, spinner) => {
+	const url = `${resource}/list/${domainName}`;
+	return await makeAPICallWithRetries("delete", spinner, token, url);
+};
+
 // Get content for a domain (By domain name and content name)
 export const getContentCall = async (token, domainName, contentName, spinner) => {
 	const url = `${resource}/${domainName}/${contentName}`;
@@ -29,5 +35,17 @@ export const getContentCall = async (token, domainName, contentName, spinner) =>
 // Get all content for a domain (By domain name)
 export const getContentsCall = async (token, domainName, spinner) => {
 	const url = `${resource}/cli/list/${domainName}`;
+	return await makeAPICallWithRetries("get", spinner, token, url);
+};
+
+// Get all content names for a domain (By domain name)
+export const getContentNamesCall = async (token, domainName, spinner) => {
+	const url = `${resource}/names/${domainName}`;
+	return await makeAPICallWithRetries("get", spinner, token, url);
+};
+
+// Get all content count for a domain (By domain name)
+export const getContentCountCall = async (token, domainName, spinner) => {
+	const url = `${resource}/count/${domainName}`;
 	return await makeAPICallWithRetries("get", spinner, token, url);
 };
