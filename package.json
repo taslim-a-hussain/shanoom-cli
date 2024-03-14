@@ -1,6 +1,6 @@
 {
 	"name": "shanoom",
-	"version": "2.0.0",
+	"version": "3.0.0",
 	"description": "Software Developer's CLI tool for content management.",
 	"type": "module",
 	"exports": {
