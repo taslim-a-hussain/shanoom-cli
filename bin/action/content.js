@@ -1,5 +1,6 @@
 import chalk from "chalk";
 import path from "path";
+import fs from "fs/promises";
 import { spinner } from "../lib/util.js";
 import { getDomainCall } from "../apicall/domain.js";
 import {
@@ -8,6 +9,7 @@ import {
 	deleteContentCall,
 	getContentCall,
 	getContentsCall,
+	deleteAllContentCall,
 } from "../apicall/content.js";
 import {
 	dataFileContents,
@@ -83,6 +85,27 @@ export const deleteContent = async (token, { name }, domainName, spinner) => {
 
 		return result;
 	} catch (error) {
+		throw new Error(error.message);
+	}
+};
+
+// ----------------------------------------------------------------------------------------------
+// Delete all content for a domain
+export const deleteAllContent = async (token) => {
+	try {
+		spinner.start("Deleting all content...");
+
+		// Get domain name
+		const domainName = path.basename(process.cwd());
+
+		// Update the content
+		const result = await deleteAllContentCall(token, domainName, spinner);
+
+		spinner.succeed("All content successfully deleted.");
+
+		console.log("result: ", result);
+	} catch (error) {
+		spinner.stop();
 		throw new Error(error.message);
 	}
 };
@@ -213,5 +236,38 @@ export const getContents = async (token, options) => {
 	} catch (error) {
 		console.error(chalk.red(`Error: ${error.message}`));
 		spinner.stop();
+	}
+};
+
+export const getDataFilesFromDB = async (token) => {
+	try {
+		spinner.start("Fetching data files...");
+
+		// Get domain name
+		const domainName = path.basename(process.cwd());
+
+		const result = await getContentsCall(token, domainName, spinner);
+
+		// If no data files found
+		if (result.length === 0) {
+			spinner.info("No data files found.");
+			spinner.stop();
+			return;
+		}
+
+		const writePromises = result.map((item) => {
+			const { path, clidata } = item;
+
+			const content = Buffer.from(clidata, "utf-16le").toString("utf-8");
+
+			fs.writeFile(path, content);
+		});
+
+		await Promise.all(writePromises);
+
+		spinner.succeed(`Contents successfully fetched and saved to the file system.`);
+	} catch (error) {
+		spinner.stop();
+		console.error(chalk.red(`Error: ${error.message}`));
 	}
 };

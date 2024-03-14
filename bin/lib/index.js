@@ -121,6 +121,20 @@ export const removeDataFilesAsync = async () => {
 	await Promise.all(deletePromises);
 };
 
+const getDatas = async (fullFilePath) => {
+	// Read the file content
+	const buffer = await fs.readFile(fullFilePath);
+
+	const utf16le = buffer.toString("utf-16le");
+
+	const fileContent = Buffer.from(utf16le, "utf-16le").toString("utf-8").trim();
+
+	// Parse the file content to a JS object
+	const data = yaml.load(fileContent);
+
+	return { clidata: utf16le, data };
+};
+
 /**
  * Returns an array of objects containing the name and data of each file in the data directory.
  * @returns {Promise<Array<{name: string, data: any}>>} An array of objects containing the name and data of each .data.[yml|yaml] file.
@@ -143,16 +157,9 @@ export const dataFileContents = async () => {
 		const fileName = Object.keys(file)[0];
 		const filePath = Object.values(file)[0];
 
-		// Read the file content
-		let fileContent = await fs.readFile(path.resolve(filePath), "utf8");
+		const { clidata, data } = await getDatas(path.resolve(filePath));
 
-		// trim the file content
-		fileContent = fileContent.trim();
-
-		// Parse the file content to a JS object
-		const data = yaml.load(fileContent);
-
-		contents.push({ name: fileName, path: filePath, data });
+		contents.push({ name: fileName, path: filePath, clidata, data });
 	}
 
 	return contents;
@@ -161,17 +168,11 @@ export const dataFileContents = async () => {
 export const prepareDataFile = async (fileInfo) => {
 	try {
 		const { relative, full, name } = fileInfo;
-		// Read the file content
-		let fileContent = await fs.readFile(full, "utf8");
 
-		// trim the file content
-		fileContent = fileContent.trim();
-
-		// Parse the file content to a JS object
-		const data = yaml.load(fileContent);
+		const { clidata, data } = await getDatas(full);
 
 		// Process media
-		const contents = await processMedia([{ name, path: relative, data }]);
+		const contents = await processMedia([{ name, path: relative, clidata, data }]);
 		return contents[0];
 	} catch (error) {
 		throw new Error(error.message);

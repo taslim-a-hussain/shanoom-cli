@@ -75,8 +75,8 @@ export const makeAPICallWithRetries = async (method, spinner, token, endPoint, d
 
 		// if ECONNREFUSED, then the server is not running
 		if (error.code === "ECONNREFUSED") {
-			spinner.fail("Unable to connect to the server.");
-			throw new Error("Please try again later.");
+			spinner.fail("Please try again later.");
+			throw new Error("Unable to connect to the server.");
 		}
 
 		// If 500 or 503 error, then the server is down

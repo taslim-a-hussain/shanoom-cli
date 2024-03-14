@@ -1,5 +1,4 @@
 import fs from "fs/promises";
-import yaml from "js-yaml";
 import path from "path";
 import { getDomainCall, createDomainCall } from "../apicall/domain.js";
 import { createContentCall, getContentsCall } from "../apicall/content.js";
@@ -146,33 +145,34 @@ export const createDomainIfNotExists = async (token, domainName, spinner) => {
 	}
 };
 
-export const synchronizeDataFiles = async (token, domainName, spinner) => {
+export const synchronizeDataFiles = async (token, domainName, spinner, onhand = false) => {
 	try {
-		spinner.text = "Synchronizing data files...";
-
 		const result = await getContentsCall(token, domainName, spinner);
 
-		// If there are no data files, return
-		if (!result.length) {
-			spinner.stop();
+		// If the result is empty, return
+		if (!result) {
 			return;
 		}
 
-		const writePromises = result.map(async (item) => {
-			const { path, data } = item;
+		if (onhand && result.length === onhand.length) {
+			return;
+		}
 
-			// Convert the data to YAML format
-			const yamlData = yaml.dump(data);
+		spinner.text = "Synchronizing data files...";
 
-			// Write the data to the file
-			await fs.writeFile(path, yamlData);
+		const writePromises = result.map((item) => {
+			const { path, clidata } = item;
+
+			const content = Buffer.from(clidata, "utf-16le").toString("utf-8");
+
+			fs.writeFile(path, content);
 		});
 
 		await Promise.all(writePromises);
 
 		spinner.succeed(`Data files successfully synchronized.`);
 	} catch (error) {
-		throw new Error(error.message);
+		throw new Error(error);
 	}
 };
 
@@ -205,6 +205,8 @@ export const dataFileProcessor = async (token, domainName, spinner) => {
 				);
 			}
 		}
+
+		return contents;
 	} catch (error) {
 		throw new Error(error.message);
 	}

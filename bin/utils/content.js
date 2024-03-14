@@ -22,8 +22,7 @@ export const processMedia = async (contents) => {
 				try {
 					// Use try-catch for error handling
 					const buf = await fs.readFile(path.resolve(fileLink));
-
-					current.devFileSrc = current[key];
+					current.ext = path.extname(fileLink);
 					current.src = buf.toString("binary");
 				} catch (error) {
 					throw new Error(`File not found: ${current[key]} in the ${relativePath} file. ${error.message}`);
