@@ -125,8 +125,10 @@ const getDatas = async (fullFilePath) => {
 	// Read the file content
 	const buffer = await fs.readFile(fullFilePath);
 
+	// Convert the buffer to a string (utf-16le)
 	const utf16le = buffer.toString("utf-16le");
 
+	// Convert the utf-16le string to utf-8
 	const fileContent = Buffer.from(utf16le, "utf-16le").toString("utf-8").trim();
 
 	// Parse the file content to a JS object
