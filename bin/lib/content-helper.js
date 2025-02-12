@@ -187,7 +187,7 @@ export const synchronizeDataFiles = async (
 			// Extract the directory from the file path
 			const dir = path.dirname(filePath);
 
-			if (!existsSync(dir) && options.force !== true) {
+			if (!existsSync(dir) && !options.force) {
 				// Let the user know to use the --force flag
 				spinner.fail(
 					`Directory ${dir} does not exist. Use the --force or -f flag to create it.`,
