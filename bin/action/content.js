@@ -70,7 +70,13 @@ export const updateContent = async (token, fileInfo, domainName, spinner) => {
 		const content = await prepareDataFile(fileInfo);
 
 		// Update the content
-		return await updateContentCall(token, domainName, content.name, content, spinner);
+		return await updateContentCall(
+			token,
+			domainName,
+			content.name,
+			content,
+			spinner,
+		);
 	} catch (error) {
 		throw new Error(error.message);
 	}
@@ -120,7 +126,10 @@ export const raw = async () => {
 
 		const cwdName = getCwdName();
 
-		spinner.info(bgBlueShade(yellowShade("Domain: ")) + bgYellowShade(blueShade(` ${cwdName} `)));
+		spinner.info(
+			bgBlueShade(yellowShade("Domain: ")) +
+				bgYellowShade(blueShade(` ${cwdName} `)),
+		);
 
 		spinner.succeed(`Total: ${data.length} content(s)`);
 
@@ -129,7 +138,10 @@ export const raw = async () => {
 			// log(JSON.stringify(item, null, 4) + "\n");
 
 			// Print out the content name
-			spinner.info(chalk.bgWhite.blueBright(" Content: ") + chalk.bgBlueBright.whiteBright(` ${item.name} `));
+			spinner.info(
+				chalk.bgWhite.blueBright(" Content: ") +
+					chalk.bgBlueBright.whiteBright(` ${item.name} `),
+			);
 
 			// Print out the data
 			console.log(JSON.stringify(item.data, null, 4));
@@ -174,17 +186,27 @@ export const getContent = async (token, options) => {
 
 		if (!domainExist) {
 			spinner.fail(`Domain ${domainName} does not exist.`);
-			spinner.info(`Run ${chalk.yellowBright("shanoom watch")} to create a domain.`);
+			spinner.info(
+				`Run ${chalk.yellowBright("shanoom watch")} to create a domain.`,
+			);
 			return;
 		}
 
 		const { name: contentName, more } = options;
 
 		// Get the content by content name
-		let content = await getContentCall(token, domainName, contentName, spinner);
+		const content = await getContentCall(
+			token,
+			domainName,
+			contentName,
+			spinner,
+		);
 		spinner.succeed(`Done!`);
 
-		console.log(chalk.bgWhite.blueBright(" Content: ") + chalk.bgBlueBright.whiteBright(` ${content.name} `));
+		console.log(
+			chalk.bgWhite.blueBright(" Content: ") +
+				chalk.bgBlueBright.whiteBright(` ${content.name} `),
+		);
 
 		if (more) {
 			console.log(` CreatedAt: ` + isoDateParse(content.createdAt));
@@ -212,7 +234,9 @@ export const getContents = async (token, options) => {
 
 		if (!domainExist) {
 			spinner.fail(`Domain ${domainName} does not exist.`);
-			spinner.info(`Run ${chalk.yellowBright("shanoom watch")} to create a domain.`);
+			spinner.info(
+				`Run ${chalk.yellowBright("shanoom watch")} to create a domain.`,
+			);
 			return;
 		}
 
@@ -225,7 +249,10 @@ export const getContents = async (token, options) => {
 
 		// Loop through the contents and print contents.name and contents.data
 		for (const content of contents) {
-			console.log(chalk.bgWhite.blueBright(" Content: ") + chalk.bgBlueBright.whiteBright(` ${content.name} `));
+			console.log(
+				chalk.bgWhite.blueBright(" Content: ") +
+					chalk.bgBlueBright.whiteBright(` ${content.name} `),
+			);
 			if (more) {
 				console.log(` CreatedAt: ` + isoDateParse(content.createdAt));
 				console.log(` UpdatedAt: ` + isoDateParse(content.updatedAt));
@@ -265,7 +292,9 @@ export const getDataFilesFromDB = async (token) => {
 
 		await Promise.all(writePromises);
 
-		spinner.succeed(`Contents successfully fetched and saved to the file system.`);
+		spinner.succeed(
+			`Contents successfully fetched and saved to the file system.`,
+		);
 	} catch (error) {
 		spinner.stop();
 		console.error(chalk.red(`Error: ${error.message}`));

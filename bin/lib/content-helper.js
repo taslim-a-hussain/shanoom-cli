@@ -1,4 +1,5 @@
 import fs from "fs/promises";
+import { existsSync, mkdirSync } from "fs";
 import path from "path";
 import { getDomainCall, createDomainCall } from "../apicall/domain.js";
 import { createContentCall, getContentsCall } from "../apicall/content.js";
@@ -84,18 +85,27 @@ export const handleFiles = async (args = {}, apiCallback) => {
 
 		spinner.start(`${action}... file: ${relativePath}`);
 
-		const result = await apiCallback(token, { relative: relativePath, full: filePath, name }, domainName, spinner);
+		const result = await apiCallback(
+			token,
+			{ relative: relativePath, full: filePath, name },
+			domainName,
+			spinner,
+		);
 
 		if (result?.action !== "No changes") {
 			const color =
 				result.action === "Created"
 					? "greenBright"
 					: result.action === "Updated"
-					? "yellowBright"
-					: "redBright";
+						? "yellowBright"
+						: "redBright";
 
 			// Perform CRUD operations or any other actions based on the file change event
-			spinner.succeed(chalk[color].bold(`File: ${relativePath} has been ${result.action.toLowerCase()}.`));
+			spinner.succeed(
+				chalk[color].bold(
+					`File: ${relativePath} has been ${result.action.toLowerCase()}.`,
+				),
+			);
 		} else {
 			// Stop the spinner
 			spinner.stop();
@@ -119,7 +129,9 @@ export const packageJsonExists = async () => {
 export const validDomainName = (domainName, spinner) => {
 	// Validate the domain name
 	if (domainName.length < domainNameMinLength) {
-		spinner.fail(`Domain name (${domainName}) must be at least ${domainNameMinLength} characters long.`);
+		spinner.fail(
+			`Domain name (${domainName}) must be at least ${domainNameMinLength} characters long.`,
+		);
 		return false;
 	}
 	return domainName;
@@ -135,7 +147,9 @@ export const createDomainIfNotExists = async (token, domainName, spinner) => {
 			spinner.text = "Creating domain...";
 			const msg = await createDomainDecreetly(token, domainName, spinner);
 			if (msg === "Created") {
-				spinner.succeed(`Domain "${domainName}" has been successfully created.`);
+				spinner.succeed(
+					`Domain "${domainName}" has been successfully created.`,
+				);
 			} else {
 				spinner.fail(`Operation failed: ${msg}`);
 			}
@@ -145,7 +159,13 @@ export const createDomainIfNotExists = async (token, domainName, spinner) => {
 	}
 };
 
-export const synchronizeDataFiles = async (token, domainName, spinner, onhand = false) => {
+export const synchronizeDataFiles = async (
+	token,
+	domainName,
+	spinner,
+	onhand = false,
+	options,
+) => {
 	try {
 		const result = await getContentsCall(token, domainName, spinner);
 
@@ -160,12 +180,30 @@ export const synchronizeDataFiles = async (token, domainName, spinner, onhand = 
 
 		spinner.text = "Synchronizing data files...";
 
-		const writePromises = result.map((item) => {
-			const { path, clidata } = item;
-
+		const writePromises = result.map(async (item) => {
+			const { path: filePath, clidata } = item;
 			const content = Buffer.from(clidata, "utf-16le").toString("utf-8");
 
-			fs.writeFile(path, content);
+			// Extract the directory from the file path
+			const dir = path.dirname(filePath);
+
+			if (!existsSync(dir) && options.force !== true) {
+				// Let the user know to use the --force flag
+				spinner.fail(
+					`Directory ${dir} does not exist. Use the --force or -f flag to create it.`,
+				);
+				throw new Error(
+					`Directory ${dir} does not exist. Use the --force or -f flag to create it.`,
+				);
+			}
+
+			// Create the directory if it doesn't exist
+			if (!existsSync(dir)) {
+				mkdirSync(dir, { recursive: true });
+			}
+
+			// Write the file
+			return fs.writeFile(filePath, content);
 		});
 
 		await Promise.all(writePromises);
@@ -197,11 +235,15 @@ export const dataFileProcessor = async (token, domainName, spinner) => {
 		for (const res of result) {
 			if (res.action && res.action !== "No changes") {
 				const color =
-					res.action === "Created" ? "greenBright" : res.action === "Updated" ? "yellowBright" : "redBright";
+					res.action === "Created"
+						? "greenBright"
+						: res.action === "Updated"
+							? "yellowBright"
+							: "redBright";
 				spinner.succeed(
 					chalk[color].bold(
-						`File: ${res.path} has been ${res.action.toLowerCase()}. Content name: ${res.name}.`
-					)
+						`File: ${res.path} has been ${res.action.toLowerCase()}. Content name: ${res.name}.`,
+					),
 				);
 			}
 		}

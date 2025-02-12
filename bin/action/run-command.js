@@ -10,7 +10,7 @@ import {
 import { dataFileProcessor } from "../utils/run-command-help.js";
 
 // Run Action
-const run = async (token) => {
+const run = async (token, options) => {
 	try {
 		// Set the initial text for the spinner
 		spinner.start("Processing...");
@@ -19,8 +19,12 @@ const run = async (token) => {
 		const packageJsonPresent = await packageJsonExists();
 
 		if (!packageJsonPresent) {
-			spinner.info("Should run the command in the root directory of your project.");
-			spinner.fail("package.json does not exist in the current working directory");
+			spinner.info(
+				"Should run the command in the root directory of your project.",
+			);
+			spinner.fail(
+				"package.json does not exist in the current working directory",
+			);
 			return;
 		}
 
@@ -37,7 +41,7 @@ const run = async (token) => {
 		const onhand = await dataFileProcessor(token, domainName, spinner);
 
 		// Synchronize data files
-		await synchronizeDataFiles(token, domainName, spinner, onhand);
+		await synchronizeDataFiles(token, domainName, spinner, onhand, options);
 
 		// Stop the spinner
 		spinner.succeed("Data files successfully processed.");

@@ -174,7 +174,9 @@ export const prepareDataFile = async (fileInfo) => {
 		const { clidata, data } = await getDatas(full);
 
 		// Process media
-		const contents = await processMedia([{ name, path: relative, clidata, data }]);
+		const contents = await processMedia([
+			{ name, path: relative, clidata, data },
+		]);
 		return contents[0];
 	} catch (error) {
 		throw new Error(error.message);

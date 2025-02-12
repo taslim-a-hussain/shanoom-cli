@@ -5,7 +5,14 @@ import { fileURLToPath } from "url";
 import path from "path";
 import { program } from "commander";
 import { login, whoami, profile, logout } from "./action/user.js";
-import { raw, removeData, getContent, getContents, getDataFilesFromDB, deleteAllContent } from "./action/content.js";
+import {
+	raw,
+	removeData,
+	getContent,
+	getContents,
+	getDataFilesFromDB,
+	deleteAllContent,
+} from "./action/content.js";
 import contentManager from "./action/content-manager.js";
 import run from "./action/run-command.js";
 import { checkTokenFile, auth, notAuth } from "./lib/index.js";
@@ -28,7 +35,9 @@ program
 // Raw data command (shanoom raw) to view the raw data of the current directory
 program
 	.command("raw")
-	.description("View the contents (from <filename>.data.[yml|yaml]) of the current directory")
+	.description(
+		"View the contents (from <filename>.data.[yml|yaml]) of the current directory",
+	)
 	.action(raw);
 
 // Login command
@@ -47,14 +56,6 @@ program
 		await auth(whoami);
 	});
 
-// Run command (shanoom run)
-program
-	.command("run")
-	.description("Will update, delete, and create content into your account")
-	.action(async () => {
-		await auth(run);
-	});
-
 // Profile command
 program
 	.command("profile")
@@ -67,7 +68,9 @@ program
 program
 	.command("removeDataFiles")
 	.alias("rdf")
-	.description("Removes all the data files under the current domain only and not from the database.")
+	.description(
+		"Removes all the data files under the current domain only and not from the database.",
+	)
 	.action(async () => {
 		await auth(removeData);
 	});
@@ -112,6 +115,16 @@ program
 		}
 	});
 
+// Run command (shanoom run)
+program
+	.command("run")
+	.description("Will update, delete, and create content into your account")
+	.option("-f, --force", "Force the command to create non-existing directories")
+	.action(async (options) => {
+		const force = options.force || false;
+		await auth(run, { force });
+	});
+
 // Get all content command (shanoom getContents or shanoom get-contents)
 program
 	.command("getContents")
@@ -127,7 +140,9 @@ program
 // Content Manager command (shanoom contentManager)
 program
 	.command("watch")
-	.description("Will watch for changes and will update, delete, and create content into your account")
+	.description(
+		"Will watch for changes and will update, delete, and create content into your account",
+	)
 	.action(async () => {
 		await auth(contentManager);
 	});

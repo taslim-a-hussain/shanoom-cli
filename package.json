@@ -49,6 +49,7 @@
 		"yaml": "^2.5.0"
 	},
 	"devDependencies": {
+		"@biomejs/biome": "^1.9.4",
 		"chai": "^4.5.0",
 		"eslint": "^8.56.0",
 		"mocha": "^10.7.0",

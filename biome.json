@@ -1,0 +1,38 @@
+{
+	"$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+	"organizeImports": {
+		"enabled": true
+	},
+	"linter": {
+		"enabled": true,
+		"rules": {
+			"recommended": true,
+			"correctness": {
+				"all": true,
+				"useImportExtensions": "off",
+				"useExhaustiveDependencies": "off",
+				"noNodejsModules": "off"
+			},
+			"complexity": {
+				"useOptionalChain": "off",
+				"useLiteralKeys": "off"
+			},
+			"style": {
+				"noParameterAssign": "off",
+				"useTemplate": "off",
+				"useExponentiationOperator": "off",
+				"useNodejsImportProtocol": "off",
+				"noUnusedTemplateLiteral": "off",
+				"useDefaultParameterLast": "off"
+			},
+			"a11y": {
+				"useButtonType": "off",
+				"useKeyWithClickEvents": "info"
+			},
+			"suspicious": {
+				"noArrayIndexKey": "off"
+			}
+		},
+		"ignore": ["*.test.*"]
+	}
+}
